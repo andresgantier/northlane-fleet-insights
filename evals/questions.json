@@ -1,104 +1,464 @@
 {
-  "$comment": "Evaluation set for the fleet assistant (npm run eval). Each expected value is computed by SQL at run time, as the same user, so it always matches today's data. match: number (all values must appear in the answer, any locale format), text (any of the accepted strings), month (a YYYY-MM month by name or number), refusal (no chart shown: the assistant says it cannot answer).",
+  "$comment": "Evaluation set for the fleet assistant (npm run eval). Each expected value is computed by SQL at run time, as the same user, so it always matches today's data. match: number (all values must appear in the answer, any locale format), text (any of the accepted strings), month (a YYYY-MM month by name or number), refusal (no chart shown: the assistant says it cannot answer). proposal (Phase 5b): the assistant must propose an FRC for the vehicle, with the right can_confirm, and never open it.",
   "questions": [
-    { "id": "en-01", "language": "en", "difficulty": "easy", "role": "fleet_ops",
-      "turns": ["How many critical cases are there right now?"],
-      "expected": { "match": "number", "sql": "select critical_cases as value from public.v_fleet_kpis" } },
-    { "id": "en-02", "language": "en", "difficulty": "easy", "role": "fleet_ops",
-      "turns": ["How many Fleet Review Cases are currently active?"],
-      "expected": { "match": "number", "sql": "select count(*)::int as value from public.fleet_review_cases where is_active" } },
-    { "id": "en-03", "language": "en", "difficulty": "easy", "role": "fleet_ops",
-      "turns": ["What was the total number of downtime days in the last 12 months?"],
-      "expected": { "match": "number", "sql": "select downtime_days as value from public.downtime_metrics(app.as_of() - 364, app.as_of())" } },
-    { "id": "en-04", "language": "en", "difficulty": "medium", "role": "fleet_ops",
-      "turns": ["Which depot has the most critical cases?"],
-      "expected": { "match": "text", "sql": "select organization_code as value from public.v_vehicle_status where is_critical group by 1 order by count(*) desc limit 1" } },
-    { "id": "en-05", "language": "en", "difficulty": "medium", "role": "fleet_ops",
-      "turns": ["What is the MTTR for vans in the last 12 months?"],
-      "expected": { "match": "number", "sql": "select mttr_days as value from public.downtime_metrics(app.as_of() - 364, app.as_of(), 'none', null, 'Van')" } },
-    { "id": "en-06", "language": "en", "difficulty": "medium", "role": "fleet_ops",
-      "turns": ["Which vehicle had the most downtime days this year so far?"],
-      "expected": { "match": "number", "sql": "select split_part(group_key, ' · ', 1)::int as value from public.downtime_metrics(date_trunc('year', app.as_of())::date, app.as_of(), 'vehicle') order by downtime_days desc, group_key limit 1" } },
-    { "id": "en-07", "language": "en", "difficulty": "medium", "role": "fleet_ops",
-      "turns": ["How many downtime episodes were caused by accidents or collisions in the last 6 months?"],
-      "expected": { "match": "number", "sql": "select episodes as value from public.downtime_metrics(app.as_of() - 179, app.as_of(), 'none', null, null, null, 'Accident/Collision Damage')" } },
-    { "id": "en-08", "language": "en", "difficulty": "hard", "role": "fleet_ops",
-      "turns": ["Which vehicle type had the lowest availability over the last 12 months?"],
-      "expected": { "match": "text", "sql": "select group_key as value from public.downtime_metrics(app.as_of() - 364, app.as_of(), 'vehicle_type') order by availability_pct asc limit 1" } },
-    { "id": "en-09", "language": "en", "difficulty": "hard", "role": "fleet_ops",
-      "turns": ["How many critical cases are there in depot W-EUN/C?", "And how many of those meet condition 1?"],
-      "expected": { "match": "number", "sql": "select count(*)::int as value from public.v_vehicle_status where organization_code = 'W-EUN/C' and is_critical and condition_1" } },
-    { "id": "en-10", "language": "en", "difficulty": "trap", "role": "fleet_ops",
-      "turns": ["What were the repair costs for mechanical breakdowns last year?"],
-      "expected": { "match": "refusal" } },
-    { "id": "en-11", "language": "en", "difficulty": "trap", "role": "fleet_ops",
-      "turns": ["Which driver causes the most breakdowns?"],
-      "expected": { "match": "refusal" } },
-
-    { "id": "es-01", "language": "es", "difficulty": "easy", "role": "fleet_ops",
-      "turns": ["¿Cuántos vehículos tuvieron al menos una baja en los últimos 12 meses?"],
-      "expected": { "match": "number", "sql": "select vehicles_with_downtime as value from public.downtime_metrics(app.as_of() - 364, app.as_of())" } },
-    { "id": "es-02", "language": "es", "difficulty": "easy", "role": "fleet_ops",
-      "turns": ["¿Cuántos días de baja hubo por mantenimiento programado en los últimos 12 meses?"],
-      "expected": { "match": "number", "sql": "select downtime_days as value from public.downtime_metrics(app.as_of() - 364, app.as_of(), 'none', null, null, null, 'Scheduled Maintenance')" } },
-    { "id": "es-03", "language": "es", "difficulty": "easy", "role": "fleet_ops",
-      "turns": ["¿Cuál fue la disponibilidad de la flota en los últimos 12 meses?"],
-      "expected": { "match": "number", "sql": "select availability_pct as value from public.downtime_metrics(app.as_of() - 364, app.as_of())" } },
-    { "id": "es-04", "language": "es", "difficulty": "medium", "role": "fleet_ops",
-      "turns": ["¿Qué remolques pasaron más de 20 días parados en los últimos 6 meses?"],
-      "expected": { "match": "number", "sql": "select count(*)::int as value from public.downtime_metrics(app.as_of() - 179, app.as_of(), 'vehicle', null, 'Trailer') where downtime_days > 20" } },
-    { "id": "es-05", "language": "es", "difficulty": "hard", "role": "fleet_ops",
-      "turns": ["¿Qué remolques pasaron más de 20 días parados en los últimos 6 meses?", "¿Y solo los refrigerados?"],
-      "expected": { "match": "number", "sql": "select count(*)::int as value from public.downtime_metrics(app.as_of() - 179, app.as_of(), 'vehicle', null, null, 'Refrigerated Trailer (Reefer)') where downtime_days > 20" } },
-    { "id": "es-06", "language": "es", "difficulty": "medium", "role": "fleet_ops",
-      "turns": ["¿En qué mes de los últimos 12 hubo más días de baja?"],
-      "expected": { "match": "month", "sql": "select group_key as value from public.downtime_metrics(app.as_of() - 364, app.as_of(), 'month') order by downtime_days desc limit 1" } },
-    { "id": "es-07", "language": "es", "difficulty": "medium", "role": "fleet_ops",
-      "turns": ["¿Cuántos casos críticos tiene la sucursal W-EUN/EL?"],
-      "expected": { "match": "number", "sql": "select count(*)::int as value from public.v_vehicle_status where organization_code = 'W-EUN/EL' and is_critical" } },
-    { "id": "es-08", "language": "es", "difficulty": "hard", "role": "fleet_ops",
-      "turns": ["¿Cuántos casos críticos cumplen la condición 2 pero no la condición 1?"],
-      "expected": { "match": "number", "sql": "select count(*)::int as value from public.v_vehicle_status where condition_2 and not condition_1" } },
-    { "id": "es-09", "language": "es", "difficulty": "hard", "role": "fleet_ops",
-      "turns": ["¿Por qué el vehículo 636 no es un caso crítico?"],
-      "expected": { "match": "text", "accept": ["FRC", "Fleet Review", "caso de revisión", "revisión de flota"] } },
-    { "id": "es-10", "language": "es", "difficulty": "trap", "role": "fleet_ops",
-      "turns": ["¿Cuántos días de baja va a haber el próximo mes?"],
-      "expected": { "match": "refusal" } },
-    { "id": "es-11", "language": "es", "difficulty": "trap", "role": "fleet_ops",
-      "turns": ["¿Qué vehículos consumen más combustible?"],
-      "expected": { "match": "refusal" } },
-
-    { "id": "de-01", "language": "de", "difficulty": "easy", "role": "fleet_ops",
-      "turns": ["Wie viele Ausfalltage gab es in den letzten 12 Monaten insgesamt?"],
-      "expected": { "match": "number", "sql": "select downtime_days as value from public.downtime_metrics(app.as_of() - 364, app.as_of())" } },
-    { "id": "de-02", "language": "de", "difficulty": "easy", "role": "fleet_ops",
-      "turns": ["Wie viele Fahrzeuge hat die Flotte insgesamt?"],
-      "expected": { "match": "number", "sql": "select count(*)::int as value from public.vehicles" } },
-    { "id": "de-03", "language": "de", "difficulty": "medium", "role": "fleet_ops",
-      "turns": ["Welche Ausfallkategorie verursachte im Kalenderjahr 2025 die meisten Ausfalltage?"],
-      "expected": { "match": "text", "sql": "select group_key as value from public.downtime_metrics(date '2025-01-01', date '2025-12-31', 'category') order by downtime_days desc limit 1" } },
-    { "id": "de-04", "language": "de", "difficulty": "medium", "role": "fleet_ops",
-      "turns": ["Wie hoch war die MTTR bei Anhängern in den letzten 6 Monaten?"],
-      "expected": { "match": "number", "sql": "select mttr_days as value from public.downtime_metrics(app.as_of() - 179, app.as_of(), 'none', null, 'Trailer')" } },
-    { "id": "de-05", "language": "de", "difficulty": "medium", "role": "fleet_ops",
-      "turns": ["Wie viele Ausfallepisoden hatte Fahrzeug 946 in den letzten 12 Monaten?"],
-      "expected": { "match": "number", "sql": "select episodes_12m as value from public.v_vehicle_status where vehicle_id = 946" } },
-    { "id": "de-06", "language": "de", "difficulty": "hard", "role": "fleet_ops",
-      "turns": ["Welches Depot hatte in den letzten 3 Monaten die meisten Ausfalltage bei Lkw?"],
-      "expected": { "match": "text", "sql": "select group_key as value from public.downtime_metrics(app.as_of() - 89, app.as_of(), 'organization', null, 'Truck') order by downtime_days desc limit 1" } },
-    { "id": "de-07", "language": "de", "difficulty": "trap", "role": "fleet_ops",
-      "turns": ["Wie viel hat die Wartung im Depot W-EUN/EJ gekostet?"],
-      "expected": { "match": "refusal" } },
-
-    { "id": "sup-01", "language": "es", "difficulty": "easy", "role": "depot_supervisor",
-      "turns": ["¿Cuántos casos críticos hay en mi sucursal?"],
-      "expected": { "match": "number", "sql": "select critical_cases as value from public.v_fleet_kpis" } },
-    { "id": "sup-02", "language": "en", "difficulty": "trap", "role": "depot_supervisor",
-      "turns": ["How many critical cases does depot W-EUN/C have?"],
-      "expected": { "match": "refusal" } },
-    { "id": "sup-03", "language": "de", "difficulty": "medium", "role": "depot_supervisor",
-      "turns": ["Welche Fahrzeuge in meinem Depot sind kritische Fälle mit den meisten Ausfalltagen? Nenne das erste."],
-      "expected": { "match": "number", "sql": "select vehicle_id as value from public.v_vehicle_status where is_critical order by downtime_days_12m desc, episodes_12m desc, vehicle_id limit 1" } }
+    {
+      "id": "en-01",
+      "language": "en",
+      "difficulty": "easy",
+      "role": "fleet_ops",
+      "turns": [
+        "How many critical cases are there right now?"
+      ],
+      "expected": {
+        "match": "number",
+        "sql": "select critical_cases as value from public.v_fleet_kpis"
+      }
+    },
+    {
+      "id": "en-02",
+      "language": "en",
+      "difficulty": "easy",
+      "role": "fleet_ops",
+      "turns": [
+        "How many Fleet Review Cases are currently active?"
+      ],
+      "expected": {
+        "match": "number",
+        "sql": "select count(*)::int as value from public.fleet_review_cases where is_active"
+      }
+    },
+    {
+      "id": "en-03",
+      "language": "en",
+      "difficulty": "easy",
+      "role": "fleet_ops",
+      "turns": [
+        "What was the total number of downtime days in the last 12 months?"
+      ],
+      "expected": {
+        "match": "number",
+        "sql": "select downtime_days as value from public.downtime_metrics(app.as_of() - 364, app.as_of())"
+      }
+    },
+    {
+      "id": "en-04",
+      "language": "en",
+      "difficulty": "medium",
+      "role": "fleet_ops",
+      "turns": [
+        "Which depot has the most critical cases?"
+      ],
+      "expected": {
+        "match": "text",
+        "sql": "select organization_code as value from public.v_vehicle_status where is_critical group by 1 order by count(*) desc limit 1"
+      }
+    },
+    {
+      "id": "en-05",
+      "language": "en",
+      "difficulty": "medium",
+      "role": "fleet_ops",
+      "turns": [
+        "What is the MTTR for vans in the last 12 months?"
+      ],
+      "expected": {
+        "match": "number",
+        "sql": "select mttr_days as value from public.downtime_metrics(app.as_of() - 364, app.as_of(), 'none', null, 'Van')"
+      }
+    },
+    {
+      "id": "en-06",
+      "language": "en",
+      "difficulty": "medium",
+      "role": "fleet_ops",
+      "turns": [
+        "Which vehicle had the most downtime days this year so far?"
+      ],
+      "expected": {
+        "match": "number",
+        "sql": "select split_part(group_key, ' · ', 1)::int as value from public.downtime_metrics(date_trunc('year', app.as_of())::date, app.as_of(), 'vehicle') order by downtime_days desc, group_key limit 1"
+      }
+    },
+    {
+      "id": "en-07",
+      "language": "en",
+      "difficulty": "medium",
+      "role": "fleet_ops",
+      "turns": [
+        "How many downtime episodes were caused by accidents or collisions in the last 6 months?"
+      ],
+      "expected": {
+        "match": "number",
+        "sql": "select episodes as value from public.downtime_metrics(app.as_of() - 179, app.as_of(), 'none', null, null, null, 'Accident/Collision Damage')"
+      }
+    },
+    {
+      "id": "en-08",
+      "language": "en",
+      "difficulty": "hard",
+      "role": "fleet_ops",
+      "turns": [
+        "Which vehicle type had the lowest availability over the last 12 months?"
+      ],
+      "expected": {
+        "match": "text",
+        "sql": "select group_key as value from public.downtime_metrics(app.as_of() - 364, app.as_of(), 'vehicle_type') order by availability_pct asc limit 1"
+      }
+    },
+    {
+      "id": "en-09",
+      "language": "en",
+      "difficulty": "hard",
+      "role": "fleet_ops",
+      "turns": [
+        "How many critical cases are there in depot W-EUN/C?",
+        "And how many of those meet condition 1?"
+      ],
+      "expected": {
+        "match": "number",
+        "sql": "select count(*)::int as value from public.v_vehicle_status where organization_code = 'W-EUN/C' and is_critical and condition_1"
+      }
+    },
+    {
+      "id": "en-10",
+      "language": "en",
+      "difficulty": "trap",
+      "role": "fleet_ops",
+      "turns": [
+        "What were the repair costs for mechanical breakdowns last year?"
+      ],
+      "expected": {
+        "match": "refusal"
+      }
+    },
+    {
+      "id": "en-11",
+      "language": "en",
+      "difficulty": "trap",
+      "role": "fleet_ops",
+      "turns": [
+        "Which driver causes the most breakdowns?"
+      ],
+      "expected": {
+        "match": "refusal"
+      }
+    },
+    {
+      "id": "es-01",
+      "language": "es",
+      "difficulty": "easy",
+      "role": "fleet_ops",
+      "turns": [
+        "¿Cuántos vehículos tuvieron al menos una baja en los últimos 12 meses?"
+      ],
+      "expected": {
+        "match": "number",
+        "sql": "select vehicles_with_downtime as value from public.downtime_metrics(app.as_of() - 364, app.as_of())"
+      }
+    },
+    {
+      "id": "es-02",
+      "language": "es",
+      "difficulty": "easy",
+      "role": "fleet_ops",
+      "turns": [
+        "¿Cuántos días de baja hubo por mantenimiento programado en los últimos 12 meses?"
+      ],
+      "expected": {
+        "match": "number",
+        "sql": "select downtime_days as value from public.downtime_metrics(app.as_of() - 364, app.as_of(), 'none', null, null, null, 'Scheduled Maintenance')"
+      }
+    },
+    {
+      "id": "es-03",
+      "language": "es",
+      "difficulty": "easy",
+      "role": "fleet_ops",
+      "turns": [
+        "¿Cuál fue la disponibilidad de la flota en los últimos 12 meses?"
+      ],
+      "expected": {
+        "match": "number",
+        "sql": "select availability_pct as value from public.downtime_metrics(app.as_of() - 364, app.as_of())"
+      }
+    },
+    {
+      "id": "es-04",
+      "language": "es",
+      "difficulty": "medium",
+      "role": "fleet_ops",
+      "turns": [
+        "¿Qué remolques pasaron más de 20 días parados en los últimos 6 meses?"
+      ],
+      "expected": {
+        "match": "number",
+        "sql": "select count(*)::int as value from public.downtime_metrics(app.as_of() - 179, app.as_of(), 'vehicle', null, 'Trailer') where downtime_days > 20"
+      }
+    },
+    {
+      "id": "es-05",
+      "language": "es",
+      "difficulty": "hard",
+      "role": "fleet_ops",
+      "turns": [
+        "¿Qué remolques pasaron más de 20 días parados en los últimos 6 meses?",
+        "¿Y solo los refrigerados?"
+      ],
+      "expected": {
+        "match": "number",
+        "sql": "select count(*)::int as value from public.downtime_metrics(app.as_of() - 179, app.as_of(), 'vehicle', null, null, 'Refrigerated Trailer (Reefer)') where downtime_days > 20"
+      }
+    },
+    {
+      "id": "es-06",
+      "language": "es",
+      "difficulty": "medium",
+      "role": "fleet_ops",
+      "turns": [
+        "¿En qué mes de los últimos 12 hubo más días de baja?"
+      ],
+      "expected": {
+        "match": "month",
+        "sql": "select group_key as value from public.downtime_metrics(app.as_of() - 364, app.as_of(), 'month') order by downtime_days desc limit 1"
+      }
+    },
+    {
+      "id": "es-07",
+      "language": "es",
+      "difficulty": "medium",
+      "role": "fleet_ops",
+      "turns": [
+        "¿Cuántos casos críticos tiene la sucursal W-EUN/EL?"
+      ],
+      "expected": {
+        "match": "number",
+        "sql": "select count(*)::int as value from public.v_vehicle_status where organization_code = 'W-EUN/EL' and is_critical"
+      }
+    },
+    {
+      "id": "es-08",
+      "language": "es",
+      "difficulty": "hard",
+      "role": "fleet_ops",
+      "turns": [
+        "¿Cuántos casos críticos cumplen la condición 2 pero no la condición 1?"
+      ],
+      "expected": {
+        "match": "number",
+        "sql": "select count(*)::int as value from public.v_vehicle_status where condition_2 and not condition_1"
+      }
+    },
+    {
+      "id": "es-09",
+      "language": "es",
+      "difficulty": "hard",
+      "role": "fleet_ops",
+      "turns": [
+        "¿Por qué el vehículo 636 no es un caso crítico?"
+      ],
+      "expected": {
+        "match": "text",
+        "accept": [
+          "FRC",
+          "Fleet Review",
+          "caso de revisión",
+          "revisión de flota"
+        ]
+      }
+    },
+    {
+      "id": "es-10",
+      "language": "es",
+      "difficulty": "trap",
+      "role": "fleet_ops",
+      "turns": [
+        "¿Cuántos días de baja va a haber el próximo mes?"
+      ],
+      "expected": {
+        "match": "refusal"
+      }
+    },
+    {
+      "id": "es-11",
+      "language": "es",
+      "difficulty": "trap",
+      "role": "fleet_ops",
+      "turns": [
+        "¿Qué vehículos consumen más combustible?"
+      ],
+      "expected": {
+        "match": "refusal"
+      }
+    },
+    {
+      "id": "de-01",
+      "language": "de",
+      "difficulty": "easy",
+      "role": "fleet_ops",
+      "turns": [
+        "Wie viele Ausfalltage gab es in den letzten 12 Monaten insgesamt?"
+      ],
+      "expected": {
+        "match": "number",
+        "sql": "select downtime_days as value from public.downtime_metrics(app.as_of() - 364, app.as_of())"
+      }
+    },
+    {
+      "id": "de-02",
+      "language": "de",
+      "difficulty": "easy",
+      "role": "fleet_ops",
+      "turns": [
+        "Wie viele Fahrzeuge hat die Flotte insgesamt?"
+      ],
+      "expected": {
+        "match": "number",
+        "sql": "select count(*)::int as value from public.vehicles"
+      }
+    },
+    {
+      "id": "de-03",
+      "language": "de",
+      "difficulty": "medium",
+      "role": "fleet_ops",
+      "turns": [
+        "Welche Ausfallkategorie verursachte im Kalenderjahr 2025 die meisten Ausfalltage?"
+      ],
+      "expected": {
+        "match": "text",
+        "sql": "select group_key as value from public.downtime_metrics(date '2025-01-01', date '2025-12-31', 'category') order by downtime_days desc limit 1"
+      }
+    },
+    {
+      "id": "de-04",
+      "language": "de",
+      "difficulty": "medium",
+      "role": "fleet_ops",
+      "turns": [
+        "Wie hoch war die MTTR bei Anhängern in den letzten 6 Monaten?"
+      ],
+      "expected": {
+        "match": "number",
+        "sql": "select mttr_days as value from public.downtime_metrics(app.as_of() - 179, app.as_of(), 'none', null, 'Trailer')"
+      }
+    },
+    {
+      "id": "de-05",
+      "language": "de",
+      "difficulty": "medium",
+      "role": "fleet_ops",
+      "turns": [
+        "Wie viele Ausfallepisoden hatte Fahrzeug 946 in den letzten 12 Monaten?"
+      ],
+      "expected": {
+        "match": "number",
+        "sql": "select episodes_12m as value from public.v_vehicle_status where vehicle_id = 946"
+      }
+    },
+    {
+      "id": "de-06",
+      "language": "de",
+      "difficulty": "hard",
+      "role": "fleet_ops",
+      "turns": [
+        "Welches Depot hatte in den letzten 3 Monaten die meisten Ausfalltage bei Lkw?"
+      ],
+      "expected": {
+        "match": "text",
+        "sql": "select group_key as value from public.downtime_metrics(app.as_of() - 89, app.as_of(), 'organization', null, 'Truck') order by downtime_days desc limit 1"
+      }
+    },
+    {
+      "id": "de-07",
+      "language": "de",
+      "difficulty": "trap",
+      "role": "fleet_ops",
+      "turns": [
+        "Wie viel hat die Wartung im Depot W-EUN/EJ gekostet?"
+      ],
+      "expected": {
+        "match": "refusal"
+      }
+    },
+    {
+      "id": "sup-01",
+      "language": "es",
+      "difficulty": "easy",
+      "role": "depot_supervisor",
+      "turns": [
+        "¿Cuántos casos críticos hay en mi sucursal?"
+      ],
+      "expected": {
+        "match": "number",
+        "sql": "select critical_cases as value from public.v_fleet_kpis"
+      }
+    },
+    {
+      "id": "sup-02",
+      "language": "en",
+      "difficulty": "trap",
+      "role": "depot_supervisor",
+      "turns": [
+        "How many critical cases does depot W-EUN/C have?"
+      ],
+      "expected": {
+        "match": "refusal"
+      }
+    },
+    {
+      "id": "sup-03",
+      "language": "de",
+      "difficulty": "medium",
+      "role": "depot_supervisor",
+      "turns": [
+        "Welche Fahrzeuge in meinem Depot sind kritische Fälle mit den meisten Ausfalltagen? Nenne das erste."
+      ],
+      "expected": {
+        "match": "number",
+        "sql": "select vehicle_id as value from public.v_vehicle_status where is_critical order by downtime_days_12m desc, episodes_12m desc, vehicle_id limit 1"
+      }
+    },
+    {
+      "id": "frc-01",
+      "language": "en",
+      "difficulty": "medium",
+      "role": "fleet_ops",
+      "turns": [
+        "Open a Fleet Review Case for vehicle 22."
+      ],
+      "expected": {
+        "match": "proposal",
+        "vehicle_id": 22,
+        "can_confirm": true
+      }
+    },
+    {
+      "id": "frc-02",
+      "language": "es",
+      "difficulty": "medium",
+      "role": "depot_supervisor",
+      "turns": [
+        "Abre un FRC para el vehículo 684."
+      ],
+      "expected": {
+        "match": "proposal",
+        "vehicle_id": 684,
+        "can_confirm": false
+      }
+    },
+    {
+      "id": "frc-03",
+      "language": "de",
+      "difficulty": "hard",
+      "role": "fleet_ops",
+      "turns": [
+        "Öffne einen Fleet Review Case für Fahrzeug 636."
+      ],
+      "expected": {
+        "match": "proposal",
+        "vehicle_id": 636,
+        "can_confirm": false
+      }
+    }
   ]
 }

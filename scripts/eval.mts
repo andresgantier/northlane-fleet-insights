@@ -11,7 +11,13 @@ process.loadEnvFile(".env.local");
 const { generateText, APICallError } = await import("ai");
 const { assistantSettings, MODEL_ID } = await import("../lib/assistant/agent");
 
-type Expected = { match: "number" | "text" | "month" | "refusal"; sql?: string; accept?: string[] };
+type Expected = {
+  match: "number" | "text" | "month" | "refusal" | "proposal";
+  sql?: string;
+  accept?: string[];
+  vehicle_id?: number;      // proposal: vehicle the FRC proposal must be for
+  can_confirm?: boolean;    // proposal: whether the user may confirm it
+};
 type Question = { id: string; language: string; difficulty: string; role: "fleet_ops" | "depot_supervisor"; turns: string[]; expected: Expected };
 
 const PAUSE_MS = 7000; // free tier allows few requests per minute
@@ -62,9 +68,18 @@ function monthForms(ym: string) {
   return forms;
 }
 
-type ToolCall = { tool: string; input: unknown };
+type ToolCall = { tool: string; input: unknown; output?: unknown };
 function grade(q: Question, expected: string | null, answer: string, calls: ToolCall[]): { pass: boolean; reason: string } {
   const charted = calls.some((c) => c.tool === "show_chart");
+  if (q.expected.match === "proposal") {
+    const p = calls.find((c) => c.tool === "propose_frc");
+    const out = p?.output as { can_confirm?: boolean; vehicle?: { vehicle_id: number } } | undefined;
+    if (!p) return { pass: false, reason: "Expected an FRC proposal (propose_frc), none was made" };
+    if (out?.vehicle?.vehicle_id !== q.expected.vehicle_id) return { pass: false, reason: `Proposal for the wrong vehicle` };
+    if (out?.can_confirm !== q.expected.can_confirm)
+      return { pass: false, reason: `Expected can_confirm = ${q.expected.can_confirm}, got ${out?.can_confirm}` };
+    return { pass: true, reason: `Proposed FRC for vehicle ${q.expected.vehicle_id} (can confirm: ${q.expected.can_confirm}); nothing written` };
+  }
   if (q.expected.match === "refusal") {
     return charted
       ? { pass: false, reason: "Expected a refusal, but the assistant showed data" }
@@ -107,7 +122,13 @@ for (const [i, q] of selected.entries()) {
         const r = await generateText({ ...settings, messages });
         messages.push(...r.response.messages);
         answer = r.text.trim();
-        calls = r.steps.flatMap((s) => s.toolCalls.map((c) => ({ tool: c.toolName, input: c.input })));
+        calls = r.steps.flatMap((s) =>
+          s.toolCalls.map((c) => ({
+            tool: c.toolName,
+            input: c.input,
+            ...(c.toolName === "propose_frc" ? { output: s.toolResults.find((t) => t.toolCallId === c.toolCallId)?.output } : {}),
+          })),
+        );
         error = null;
         break;
       } catch (e) {
@@ -127,7 +148,10 @@ for (const [i, q] of selected.entries()) {
   const graded = error ? { pass: false, reason: `Error: ${error}` } : grade(q, expected, answer, calls);
   results.push({
     id: q.id, language: q.language, difficulty: q.difficulty, role: q.role, turns: q.turns,
-    match: q.expected.match, expected: q.expected.match === "refusal" ? "Refusal (no data shown)" : (expected ?? q.expected.accept?.join(" / ") ?? null),
+    match: q.expected.match,
+    expected: q.expected.match === "refusal" ? "Refusal (no data shown)"
+      : q.expected.match === "proposal" ? `FRC proposal for vehicle ${q.expected.vehicle_id}, ${q.expected.can_confirm ? "confirmable" : "not confirmable"}`
+      : (expected ?? q.expected.accept?.join(" / ") ?? null),
     answer, tools: calls, pass: graded.pass, reason: graded.reason, seconds: Math.round((Date.now() - started) / 100) / 10,
   });
   console.log(`${String(i + 1).padStart(2)}/${selected.length} ${graded.pass ? "PASS" : "FAIL"} ${q.id} · ${graded.reason}`);

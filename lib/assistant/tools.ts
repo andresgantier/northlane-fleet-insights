@@ -392,6 +392,40 @@ export function buildTools(ctx: ToolContext) {
       },
     }),
 
+    propose_frc: tool({
+      description:
+        "Prepare a proposal to open a Fleet Review Case (FRC) for one vehicle, when the user asks to open one. " +
+        "This never opens it: the user sees a card with the evidence and confirms with a button. Returns whether " +
+        "the user is allowed to confirm and why not. Do not call show_chart for proposals.",
+      inputSchema: z.object({ vehicle_id: z.number().int().positive() }),
+      execute: async ({ vehicle_id }) => {
+        const [rows] = await run((sql) => [
+          sql`select vehicle_id, plate_nr, vehicle_type, organization_code, frc_status, frc_active,
+                     cond1_episodes, cond2_days, condition_1, condition_2, is_critical
+              from public.v_vehicle_status where vehicle_id = ${vehicle_id}`,
+        ]);
+        const v = rows[0];
+        if (!v) return { kind: "frc_proposal" as const, found: false, can_confirm: false, reason: "No vehicle with that ID is visible to this user." };
+        const reason = ctx.isSupervisor
+          ? "Only Fleet Operations can open a Fleet Review Case. Ask Fleet Operations to review this vehicle."
+          : v.frc_active ? "This vehicle already has an active Fleet Review Case."
+          : !v.is_critical ? "This vehicle is not a critical case, so no Fleet Review Case is needed."
+          : null;
+        return {
+          kind: "frc_proposal" as const,
+          found: true,
+          can_confirm: reason === null,
+          reason,
+          vehicle: {
+            vehicle_id: Number(v.vehicle_id), plate_nr: String(v.plate_nr), vehicle_type: String(v.vehicle_type),
+            organization_code: String(v.organization_code), frc_status: (v.frc_status as string | null) ?? null,
+            cond1_episodes: num(v.cond1_episodes), cond2_days: num(v.cond2_days),
+            condition_1: Boolean(v.condition_1), condition_2: Boolean(v.condition_2),
+          },
+        };
+      },
+    }),
+
     show_chart: tool({
       description:
         "Display a data result to the user. Call exactly once per answer, after the data tools, with the result_id " +

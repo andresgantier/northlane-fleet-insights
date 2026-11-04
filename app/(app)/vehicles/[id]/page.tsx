@@ -30,7 +30,7 @@ async function Vehicle({ params }: Pick<PageProps<"/vehicles/[id]">, "params">) 
   // Not found also covers vehicles of other depots: RLS hides them from supervisors.
   const detail = await getVehicleDetail(user.id, vehicleId);
   if (!detail) notFound();
-  const { vehicle: v, episodes, asOf } = detail;
+  const { vehicle: v, episodes, actions, asOf } = detail;
 
   const conditions = [
     { ok: v.condition_1, label: "Condition 1", rule: "3 or more episodes in the last 6 months", value: `${v.cond1_episodes} counted episodes` },
@@ -109,6 +109,24 @@ async function Vehicle({ params }: Pick<PageProps<"/vehicles/[id]">, "params">) 
           <DowntimeTimeline episodes={episodes} asOf={asOf} frcStart={v.frc_start} frcEnd={v.frc_end} />
         </CardContent>
       </Card>
+
+      {actions.length > 0 && (
+        <Card>
+          <CardHeader><CardTitle className="text-base">FRC actions (audit)</CardTitle></CardHeader>
+          <CardContent>
+            <ul className="flex flex-col gap-1 text-sm">
+              {actions.map((a) => (
+                <li key={a.created_at} className="flex flex-wrap gap-x-2">
+                  <span className="text-muted-foreground">{a.created_at.slice(0, 16)}</span>
+                  <span>{a.user_name}</span>
+                  <Badge variant={a.result === "opened" ? "secondary" : "outline"}>{a.result.replace("_", " ")}</Badge>
+                  <span className="text-muted-foreground">{a.message}{a.previous_status ? ` (replaced: ${a.previous_status.replace("Review Case ", "")})` : ""}</span>
+                </li>
+              ))}
+            </ul>
+          </CardContent>
+        </Card>
+      )}
 
       <section className="rounded-lg border bg-card">
         <h2 className="px-4 pt-4 text-base font-medium">Episodes ({episodes.length})</h2>

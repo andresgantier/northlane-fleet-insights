@@ -60,7 +60,7 @@ export default function EvaluationPage() {
         <CardHeader><CardTitle className="text-base">History</CardTitle></CardHeader>
         <CardContent className="text-sm text-muted-foreground">
           First run: 27 of 32 (84 %). The five failures were reviewed one by one (four assistant issues, one grading
-          error); each fix is noted on its question below. The full set was then run again: the remaining failure is explained on its question.
+          error); each fix is noted on its question below. The full set was then run again: the remaining failure is explained on its question. Three questions on the supervised FRC action were added later (they check that the assistant proposes, with the right permission, and never opens a case by itself).
         </CardContent>
       </Card>
 

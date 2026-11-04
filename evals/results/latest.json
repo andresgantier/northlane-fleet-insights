@@ -1,9 +1,9 @@
 {
-  "run_at": "2026-11-04T23:29:57.029Z",
+  "run_at": "2026-11-04T23:36:22.039Z",
   "as_of": "2026-11-05",
   "model": "gemini-3.5-flash-lite",
-  "total": 32,
-  "passed": 31,
+  "total": 35,
+  "passed": 34,
   "results": [
     {
       "id": "en-01",
@@ -1128,6 +1128,126 @@
       "pass": true,
       "reason": "Mentions 16",
       "seconds": 10.2
+    },
+    {
+      "id": "frc-01",
+      "language": "en",
+      "difficulty": "medium",
+      "role": "fleet_ops",
+      "turns": [
+        "Open a Fleet Review Case for vehicle 22."
+      ],
+      "match": "proposal",
+      "expected": "FRC proposal for vehicle 22, confirmable",
+      "answer": "Please review the evidence for vehicle 22 in the card below. You can confirm opening the Fleet Review Case using the button.",
+      "tools": [
+        {
+          "tool": "propose_frc",
+          "input": {
+            "vehicle_id": 22
+          },
+          "output": {
+            "kind": "frc_proposal",
+            "found": true,
+            "can_confirm": true,
+            "reason": null,
+            "vehicle": {
+              "vehicle_id": 22,
+              "plate_nr": "A-ZH847",
+              "vehicle_type": "Articulated Truck",
+              "organization_code": "W-EUN/EH",
+              "frc_status": "Review Case Closed – No Action Plan",
+              "cond1_episodes": 8,
+              "cond2_days": 8,
+              "condition_1": true,
+              "condition_2": false
+            }
+          }
+        }
+      ],
+      "pass": true,
+      "reason": "Proposed FRC for vehicle 22 (can confirm: true); nothing written",
+      "seconds": 9
+    },
+    {
+      "id": "frc-02",
+      "language": "es",
+      "difficulty": "medium",
+      "role": "depot_supervisor",
+      "turns": [
+        "Abre un FRC para el vehículo 684."
+      ],
+      "match": "proposal",
+      "expected": "FRC proposal for vehicle 684, not confirmable",
+      "answer": "La tarjeta muestra la evidencia para el vehículo 684 (placa CZ 453 CF). No es posible confirmar la apertura directamente ya que solo Operaciones de Flota puede abrir un Caso de Revisión de Flota (FRC); por favor, solicítelo a Operaciones de Flota.",
+      "tools": [
+        {
+          "tool": "propose_frc",
+          "input": {
+            "vehicle_id": 684
+          },
+          "output": {
+            "kind": "frc_proposal",
+            "found": true,
+            "can_confirm": false,
+            "reason": "Only Fleet Operations can open a Fleet Review Case. Ask Fleet Operations to review this vehicle.",
+            "vehicle": {
+              "vehicle_id": 684,
+              "plate_nr": "CZ 453 CF",
+              "vehicle_type": "Refrigerated Trailer (Reefer)",
+              "organization_code": "W-EUN/EJ",
+              "frc_status": null,
+              "cond1_episodes": 5,
+              "cond2_days": 11,
+              "condition_1": true,
+              "condition_2": false
+            }
+          }
+        }
+      ],
+      "pass": true,
+      "reason": "Proposed FRC for vehicle 684 (can confirm: false); nothing written",
+      "seconds": 8.9
+    },
+    {
+      "id": "frc-03",
+      "language": "de",
+      "difficulty": "hard",
+      "role": "fleet_ops",
+      "turns": [
+        "Öffne einen Fleet Review Case für Fahrzeug 636."
+      ],
+      "match": "proposal",
+      "expected": "FRC proposal for vehicle 636, not confirmable",
+      "answer": "Die Karte zeigt die Details für Fahrzeug 636. Es kann derzeit kein neuer Fleet Review Case eröffnet werden, da für dieses Fahrzeug bereits ein aktiver Fleet Review Case vorliegt.",
+      "tools": [
+        {
+          "tool": "propose_frc",
+          "input": {
+            "vehicle_id": 636
+          },
+          "output": {
+            "kind": "frc_proposal",
+            "found": true,
+            "can_confirm": false,
+            "reason": "This vehicle already has an active Fleet Review Case.",
+            "vehicle": {
+              "vehicle_id": 636,
+              "plate_nr": "PL-4428",
+              "vehicle_type": "Livestock Trailer",
+              "organization_code": "W-EUN/EL",
+              "frc_status": "Review Case Active – Standard",
+              "cond1_episodes": 4,
+              "cond2_days": 22,
+              "condition_1": false,
+              "condition_2": false
+            }
+          }
+        }
+      ],
+      "pass": true,
+      "reason": "Proposed FRC for vehicle 636 (can confirm: false); nothing written",
+      "seconds": 8.9
     }
   ]
 }

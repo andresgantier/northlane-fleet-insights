@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import type { ChartSpec, DataResult } from "@/lib/assistant/types";
 import { AnswerVisual } from "./answer-visual";
+import { FrcProposalCard, type FrcProposal } from "./frc-proposal-card";
 
 type ToolPart = { type: string; state?: string; output?: unknown };
 
@@ -27,8 +28,11 @@ function visualsOf(message: UIMessage) {
       results.set(String(out.result_id), out as unknown as DataResult);
     }
   }
-  const data = spec ? results.get(spec.result_id) ?? null : [...results.values()].at(-1) ?? null;
-  return { data, spec: data && spec?.result_id === data.result_id ? spec : null };
+  const proposals = (message.parts as ToolPart[])
+    .filter((p) => p.type === "tool-propose_frc" && p.state === "output-available")
+    .map((p) => p.output as FrcProposal);
+  const data = spec ? results.get(spec.result_id) ?? null : proposals.length ? null : [...results.values()].at(-1) ?? null;
+  return { data, spec: data && spec?.result_id === data.result_id ? spec : null, proposals };
 }
 
 export function Chat({ suggestions }: { suggestions: string[] }) {
@@ -66,10 +70,11 @@ export function Chat({ suggestions }: { suggestions: string[] }) {
           const text = m.parts.map((p) => (p.type === "text" ? p.text : "")).join("").trim();
           if (m.role === "user")
             return <div key={m.id} className="max-w-[85%] self-end rounded-lg bg-primary px-3 py-2 text-sm text-primary-foreground">{text}</div>;
-          const { data, spec } = visualsOf(m);
+          const { data, spec, proposals } = visualsOf(m);
           return (
             <div key={m.id} className="flex max-w-full flex-col gap-3 sm:max-w-[92%]">
               {text && <div className="whitespace-pre-wrap rounded-lg border bg-card px-3 py-2 text-sm">{text}</div>}
+              {proposals.map((p, i) => <FrcProposalCard key={i} proposal={p} />)}
               {data && <AnswerVisual data={data} spec={spec} />}
             </div>
           );
