@@ -65,7 +65,7 @@ Que se pueda mostrar con un link público y explicar con seguridad en entrevista
 ## Lecciones de proyectos anteriores (aplícalas desde el inicio)
 - Next.js 16 con `cacheComponents`: todo lo que lea sesión o datos en vivo va dentro de `<Suspense>` y empieza con `await connection()`. `usePathname()` en el layout también va en `<Suspense>`.
 - La protección de rutas va en `proxy.ts` (Next.js 16) con el middleware de `@neon/auth`; la identidad se verifica siempre en el servidor, nunca se confía en datos del navegador.
-- Variables (todas de servidor, sin `NEXT_PUBLIC_`): `DATABASE_URL`, `NEON_AUTH_BASE_URL`, `NEON_AUTH_COOKIE_SECRET`, `GEMINI_API_KEY`, `DEMO_PASSWORD`.
+- Variables (todas de servidor, sin `NEXT_PUBLIC_`): `DATABASE_URL` (dueño, solo local), `APP_DATABASE_URL` (solo lectura, la que va a Vercel), `NEON_AUTH_BASE_URL`, `NEON_AUTH_COOKIE_SECRET`, `GEMINI_API_KEY`, `DEMO_PASSWORD`.
 - En Vercel, cargar las variables ANTES del primer deploy. Después de cambiar cualquier variable hay que hacer Redeploy (las `NEXT_PUBLIC_`, si alguna vez hay, se incrustan al compilar).
 - `create-next-app` no corre en una carpeta con archivos: generar en una subcarpeta temporal y mover, conservando `CLAUDE.md`, `docs/` y `data/`. Si el generador crea su propio `AGENTS.md`, se importa en este archivo.
 - Si el servidor de desarrollo lleva mucho tiempo corriendo y algo falla sin explicación, probar con un build de producción antes de cambiar código.
@@ -84,4 +84,6 @@ Que se pueda mostrar con un link público y explicar con seguridad en entrevista
 - `npm run build` / `npm run lint` – verificación antes de cada cierre de fase
 - `npm run db:migrate` – aplica las migraciones pendientes (`npm run db:status` las lista; `npm run db:new <name>` crea una)
 - `npm run db:import` – importa y limpia los Excel, desplaza las fechas (Fase 1)
+- `npm run db:app-role` – fija la contraseña del login de solo lectura `app_login` y escribe `APP_DATABASE_URL` en `.env.local`
+- `npm run db:sql -- <archivo.sql> [--app]` – corre consultas de verificación (`db/verify/`) como dueño o, con `--app`, como la app
 - `npm run eval` – corre el set de evaluación contra el asistente (Fase 5)

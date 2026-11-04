@@ -1,5 +1,6 @@
 // Import of the two source Excel files into Neon (npm run db:import).
-// Re-runnable: replaces all fleet data in one transaction (import_runs keeps the history).
+// Re-runnable: replaces all fleet data in one transaction (import_runs keeps the history;
+// organizations are upserted so user profiles that reference them survive).
 // Steps: read -> clean -> deduplicate -> normalize -> shift dates -> load -> report.
 // Uses DATABASE_URL from .env.local (owner role, local only).
 
@@ -11,9 +12,11 @@ const DOWNTIME_FILE = "data/source/Downtime Records.xlsx";
 const FRC_FILE = "data/source/Fleet Review Case Status.xlsx";
 const REPORT_FILE = "docs/DATA_IMPORT_REPORT.md";
 
-// "Last Update" shown in the original Power BI report. Dates are shifted so that this
-// day becomes today: the data keeps its original "as of" meaning (ongoing episodes stay ongoing).
-const SOURCE_SNAPSHOT_DATE = "2026-07-08";
+// Day on which the original Power BI report was evaluated (its TODAY()): 2026-07-22, two weeks
+// after its "Last Update" of 2026-07-08, matching the two-week refresh cycle. Evidence: with this
+// date the critical-case rules give exactly the 100 cases and the same flags shown in the report.
+// Dates are shifted so that this day becomes today: the data keeps its original meaning.
+const SOURCE_REFERENCE_DATE = "2026-07-22";
 
 const CATEGORIES = [
   "Mechanical Breakdown",
@@ -210,16 +213,16 @@ const cases = frc.rows.map((r) => {
 const dashCount = frc.rows.filter((r) => r["FRC End"] === "-").length + frc.rows.filter((r) => r["Grace Period Until"] === "-").length;
 if (dashCount) note('"-" used as empty value', `${dashCount} cells in FRC End / Grace Period Until (all on active cases)`, "Stored as NULL", dashCount);
 const oldest = cases.reduce((m, c) => (c.start < m ? c.start : m), "9999-12-31");
-const snapshotDay = dayNumber(SOURCE_SNAPSHOT_DATE);
-const afterSnapshot = uniqueEvents.filter((e) => dayNumber(e.end) > snapshotDay);
-for (const e of afterSnapshot)
-  note("Episode ends after the source snapshot date", `Vehicle ${e.vehicleId}, ${e.start} to ${e.end} (snapshot ${SOURCE_SNAPSHOT_DATE})`, "Kept: ongoing episode with planned end");
+const referenceDay = dayNumber(SOURCE_REFERENCE_DATE);
+const afterReference = uniqueEvents.filter((e) => dayNumber(e.end) > referenceDay);
+for (const e of afterReference)
+  note("Episode ends after the source reference date", `Vehicle ${e.vehicleId}, ${e.start} to ${e.end} (reference ${SOURCE_REFERENCE_DATE})`, "Kept: ongoing episode with planned end");
 
 // ---------------------------------------------------------------------------
-// 4. Shift dates: source snapshot date -> today
+// 4. Shift dates: source reference date -> today
 // ---------------------------------------------------------------------------
 const today = todayBerlin();
-const shiftDays = dayNumber(today) - snapshotDay;
+const shiftDays = dayNumber(today) - referenceDay;
 const shift = (iso) => (iso === null ? null : addDays(iso, shiftDays));
 
 // ---------------------------------------------------------------------------
@@ -241,11 +244,13 @@ const source = {
 let loaded;
 try {
   await db.query("begin");
-  await db.query("truncate public.fleet_review_cases, public.downtime_events, public.vehicles, public.vehicle_types, public.organizations restart identity");
+  // Organizations are upserted, not truncated: app_users (Phase 2) references them.
+  await db.query("truncate public.fleet_review_cases, public.downtime_events, public.vehicles, public.vehicle_types restart identity");
 
   await db.query(
     `insert into public.organizations (code, org_lvl_3, org_lvl_4, org_lvl_5)
-     select * from unnest($1::text[], $2::text[], $3::text[], $4::text[])`,
+     select * from unnest($1::text[], $2::text[], $3::text[], $4::text[])
+     on conflict (code) do update set org_lvl_3 = excluded.org_lvl_3, org_lvl_4 = excluded.org_lvl_4, org_lvl_5 = excluded.org_lvl_5`,
     [organizations.map((o) => o.code), organizations.map((o) => o.lvl3), organizations.map((o) => o.lvl4), organizations.map((o) => o.lvl5)],
   );
 
@@ -294,8 +299,8 @@ try {
 
   const report = { source, loaded, duplicates_removed: duplicates, anomalies };
   await db.query(
-    "insert into public.import_runs (source_snapshot_date, shift_days, report) values ($1, $2, $3)",
-    [SOURCE_SNAPSHOT_DATE, shiftDays, JSON.stringify(report)],
+    "insert into public.import_runs (source_reference_date, shift_days, report) values ($1, $2, $3)",
+    [SOURCE_REFERENCE_DATE, shiftDays, JSON.stringify(report)],
   );
   await db.query("commit");
 } catch (error) {
@@ -317,7 +322,7 @@ const lines = [
   "",
   "## Date shift",
   "",
-  `All dates were shifted by **${shiftDays} days** so that the source snapshot date (${SOURCE_SNAPSHOT_DATE}, "Last Update" of the original Power BI report) becomes ${today}.`,
+  `All dates were shifted by **${shiftDays} days** so that the source reference date (${SOURCE_REFERENCE_DATE}, the day the original Power BI report was evaluated, two weeks after its "Last Update" of 2026-07-08) becomes ${today}.`,
   `Oldest FRC start in the source: ${oldest}.`,
   "",
   "## Counts",
@@ -344,7 +349,7 @@ const lines = [
 ];
 writeFileSync(REPORT_FILE, lines.join("\n"));
 
-console.log(`Shift: ${shiftDays} days (${SOURCE_SNAPSHOT_DATE} -> ${today})`);
+console.log(`Shift: ${shiftDays} days (${SOURCE_REFERENCE_DATE} -> ${today})`);
 console.table({ source, loaded });
 console.table(Object.fromEntries(Object.entries(grouped).map(([t, l]) => [t, { cases: l.reduce((n, a) => n + a.count, 0), action: l[0].action }])));
 console.log(`Report written to ${REPORT_FILE}`);

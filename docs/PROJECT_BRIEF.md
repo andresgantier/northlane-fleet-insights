@@ -31,6 +31,7 @@ Interpretación tomada de las medidas DAX del reporte (p. ej. `Condition 1`: `St
   1. **Cond. 1:** ≥ 3 episodios en los últimos 6 meses (180 días), contando solo episodios que empiezan después del fin del último FRC y sin FRC activo.
   2. **Cond. 2:** ≥ 20 días de baja en los últimos 6 meses, mismas condiciones.
   3. **Cond. 3:** sin FRC activo y > 20 días de baja en los últimos 12 meses.
+  **Decisión (Fase 2):** `is_critical` = Cond. 1 o Cond. 2, igual que el reporte de Power BI (que no implementa la Cond. 3: el vehículo 946 la cumple y no está marcado). La Cond. 3 se calcula y se muestra aparte. Detalle en `docs/METRICS.md`.
   Los detalles exactos (365 días para 12 meses, si cuenta Start o End en el borde, qué pasa sin FRC previo) se confirman en la Fase 2 contra las medidas DAX y se documentan.
 - **Métricas definidas y documentadas (`docs/METRICS.md`):**
   - *Downtime days:* suma de `days` de los episodios del período.

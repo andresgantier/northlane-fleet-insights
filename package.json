@@ -10,7 +10,9 @@
     "db:migrate": "dbmate --env-file .env.local --no-dump-schema migrate",
     "db:status": "dbmate --env-file .env.local status",
     "db:new": "dbmate new",
-    "db:import": "node scripts/import.mjs"
+    "db:import": "node scripts/import.mjs",
+    "db:sql": "node scripts/sql.mjs",
+    "db:app-role": "node scripts/app-role.mjs"
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.2.0",

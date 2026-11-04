@@ -6,9 +6,9 @@ export async function GET() {
   await connection(); // always run at request time, never prerendered
   const checkedAt = new Date().toISOString();
 
-  if (!process.env.DATABASE_URL) {
+  if (!process.env.APP_DATABASE_URL) {
     return Response.json(
-      { ok: false, error: "DATABASE_URL is missing", checked_at: checkedAt },
+      { ok: false, error: "APP_DATABASE_URL is missing", checked_at: checkedAt },
       { status: 503 },
     );
   }

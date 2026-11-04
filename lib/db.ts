@@ -1,10 +1,10 @@
 import "server-only";
 import { neon } from "@neondatabase/serverless";
 
-// Neon serverless driver over HTTP: one round trip per query, ideal for Vercel functions.
-// Phase 2 replaces this owner connection with a read-only role plus per-user RLS context.
+// Neon serverless driver over HTTP, connected as the read-only app login (app_login).
+// Row level security applies: queries must run with the signed-in user's id as context (Phase 3).
 export function sql() {
-  const url = process.env.DATABASE_URL;
-  if (!url) throw new Error("DATABASE_URL is missing");
+  const url = process.env.APP_DATABASE_URL;
+  if (!url) throw new Error("APP_DATABASE_URL is missing");
   return neon(url);
 }

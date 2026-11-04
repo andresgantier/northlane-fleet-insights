@@ -50,10 +50,17 @@ erDiagram
     import_runs {
         bigint id PK
         timestamptz imported_at
-        date source_snapshot_date
+        date source_reference_date
         int shift_days
         jsonb report
     }
+    app_users {
+        text user_id PK "Neon Auth user id"
+        text display_name
+        text role "fleet_ops / depot_supervisor"
+        text organization_code FK "depot (supervisors only)"
+    }
+    organizations ||--o{ app_users : "supervised by"
 ```
 
 Compared with the Power BI model: the `Date` table is not needed (SQL filters dates directly), `Data Refresh` becomes `import_runs`, and the organization hangs off the vehicle instead of each downtime row.
@@ -81,7 +88,7 @@ Compared with the Power BI model: the `Date` table is not needed (SQL filters da
 2. **Duplicates removed:** same vehicle, category, start and end counts once (10 cases, one of them recorded under two depots).
 3. **One organization per vehicle:** its most recent episode's depot. RLS by depot uses this column.
 4. **Vehicle classes:** names with "Trailer", plus Enclosed Car Carrier and Hazardous Materials Tanker → Trailer; the six "… Van" types → Van; everything else → Truck.
-5. **Date shift:** every date moves by the same number of days so that the source snapshot (2026-07-08, "Last Update" in the Power BI report) becomes the import day. Ongoing episodes keep their planned end in the future, as in the original. Re-running the import realigns the data with today.
+5. **Date shift:** every date moves by the same number of days so that the day the Power BI report was evaluated (2026-07-22, its `TODAY()`, two weeks after its "Last Update" of 2026-07-08) becomes the import day. With that date the critical-case rules reproduce the report exactly (see [METRICS.md](METRICS.md)). Ongoing episodes keep their planned end in the future, as in the original. Re-running the import realigns the data with today.
 
 ## Constraints that protect the data
 
