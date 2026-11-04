@@ -9,12 +9,14 @@
     "lint": "eslint",
     "db:migrate": "dbmate --env-file .env.local --no-dump-schema migrate",
     "db:status": "dbmate --env-file .env.local status",
-    "db:new": "dbmate new"
+    "db:new": "dbmate new",
+    "db:import": "node scripts/import.mjs"
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.2.0",
     "class-variance-authority": "^0.7.1",
     "cn": "^0.5.2",
+    "exceljs": "^4.4.0",
     "lucide-react": "^1.68.0",
     "next": "16.4.5",
     "radix-ui": "^1.8.1",
