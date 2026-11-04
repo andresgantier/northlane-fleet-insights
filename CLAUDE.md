@@ -37,7 +37,7 @@ Que se pueda mostrar con un link público y explicar con seguridad en entrevista
 
 ## Stack (todo gratis)
 - Next.js (App Router) + TypeScript, Tailwind CSS, shadcn/ui, Recharts.
-- Vercel AI SDK + Google Gemini (capa gratuita, modelo Flash vigente: verificarlo en la documentación oficial antes de usarlo).
+- Vercel AI SDK + Google Gemini, capa gratuita: `gemini-3.5-flash-lite` (3.8 Flash daba 503 por demanda y 3.6 Flash permite solo 20 llamadas por día). Límite por minuto bajo: no lanzar muchas preguntas seguidas.
 - Neon: PostgreSQL serverless (plan gratis: no se pausa ni se borra por inactividad) + Neon Auth (Managed Better Auth, `@neon/auth`) para el login.
 - Migraciones con `dbmate` (archivos SQL planos con `-- migrate:up` / `-- migrate:down`).
 - `exceljs` en el navegador con carga diferida (solo al hacer clic en "Download (.xlsx)").
@@ -87,4 +87,5 @@ Que se pueda mostrar con un link público y explicar con seguridad en entrevista
 - `npm run db:app-role` – fija la contraseña del login de solo lectura `app_login` y escribe `APP_DATABASE_URL` en `.env.local`
 - `npm run db:demo-users` – crea o verifica las dos cuentas demo en Neon Auth y su perfil en `app_users`
 - `npm run db:sql -- <archivo.sql> [--app]` – corre consultas de verificación (`db/verify/`) como dueño o, con `--app`, como la app
+- `npm run ask -- [--supervisor] "pregunta" ["seguimiento"]` – pregunta al asistente desde la terminal como un rol demo (gasta cuota de Gemini)
 - `npm run eval` – corre el set de evaluación contra el asistente (Fase 5)

@@ -15,11 +15,16 @@ export function sql(): Sql {
 // Runs queries as a signed-in user: one read-only transaction that first sets app.user_id,
 // so row level security filters every query to what this user may see.
 // userId must come from a verified Neon Auth session, never from the browser.
-export async function queryAsUser(userId: string, build: (sql: Sql) => Query[]): Promise<Row[][]> {
+// readOnly: false is only used to call app.log_assistant_question (the app role has no table writes).
+export async function queryAsUser(
+  userId: string,
+  build: (sql: Sql) => Query[],
+  options: { readOnly?: boolean } = {},
+): Promise<Row[][]> {
   const db = sql();
   const results = await db.transaction(
     [db`select set_config('app.user_id', ${userId}, true)`, ...build(db)],
-    { readOnly: true },
+    { readOnly: options.readOnly ?? true },
   );
   return results.slice(1) as Row[][];
 }
