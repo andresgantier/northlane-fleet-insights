@@ -79,10 +79,12 @@ export function buildTools(ctx: ToolContext) {
         period: periodSchema,
         filters: filtersSchema,
         sort_by: z.enum(["downtime_days", "episodes", "mttr_days", "availability_pct", "vehicles_with_downtime"]).optional()
-          .describe("Ignored for group_by month (always chronological). Default downtime_days."),
+          .describe("Default downtime_days. For group_by month the default is chronological; set sort_by to rank months."),
         sort_order: z.enum(["desc", "asc"]).optional().describe("Default desc"),
-        min_downtime_days: z.number().int().min(0).optional().describe("Keep only groups with downtime_days >= this value"),
-        min_episodes: z.number().int().min(0).optional().describe("Keep only groups with episodes >= this value"),
+        min_downtime_days: z.number().int().min(0).optional()
+          .describe("Keep only groups with downtime_days >= this value. 'More than 20 days' means 21."),
+        min_episodes: z.number().int().min(0).optional()
+          .describe("Keep only groups with episodes >= this value. 'More than 3 episodes' means 4."),
         top_n: topN,
       }),
       execute: async (input) => {
@@ -104,7 +106,7 @@ export function buildTools(ctx: ToolContext) {
         }));
         if (input.min_downtime_days !== undefined) data = data.filter((r) => (r.downtime_days ?? 0) >= input.min_downtime_days!);
         if (input.min_episodes !== undefined) data = data.filter((r) => (r.episodes ?? 0) >= input.min_episodes!);
-        if (input.group_by !== "month") {
+        if (input.group_by !== "month" || input.sort_by) {
           const key = input.sort_by ?? "downtime_days";
           const dir = input.sort_order === "asc" ? 1 : -1;
           data.sort((a, b) => dir * (((a[key] ?? -1) as number) - ((b[key] ?? -1) as number)));
@@ -167,6 +169,8 @@ export function buildTools(ctx: ToolContext) {
             frc_state: z.enum(FRC_STATES).optional().describe("any (default), active, none (never had one), or a closed state"),
             critical_only: z.boolean().optional().describe("Only critical cases (condition 1 or 2)"),
             condition: z.enum(["condition_1", "condition_2", "condition_3"]).optional().describe("Only vehicles meeting this condition"),
+            without_condition: z.enum(["condition_1", "condition_2", "condition_3"]).optional()
+              .describe("Only vehicles NOT meeting this condition (e.g. condition 2 but not condition 1)"),
           })
           .default({}),
         sort_by: z.enum(["episodes_12m", "downtime_days_12m", "cond1_episodes", "cond2_days", "latest_start"]).optional()
@@ -187,6 +191,10 @@ export function buildTools(ctx: ToolContext) {
                      or (${f.condition ?? null} = 'condition_1' and condition_1)
                      or (${f.condition ?? null} = 'condition_2' and condition_2)
                      or (${f.condition ?? null} = 'condition_3' and condition_3))
+                and (${f.without_condition ?? null}::text is null
+                     or (${f.without_condition ?? null} = 'condition_1' and not condition_1)
+                     or (${f.without_condition ?? null} = 'condition_2' and not condition_2)
+                     or (${f.without_condition ?? null} = 'condition_3' and not condition_3))
                 and episodes_12m > 0`,
         ]);
         const key = input.sort_by ?? "episodes_12m";
@@ -242,10 +250,11 @@ export function buildTools(ctx: ToolContext) {
               ...(frc ? [`FRC = ${f.frc_state}`] : []),
               ...(f.critical_only ? ["Critical cases only"] : []),
               ...(f.condition ? [`Meets ${f.condition.replace("_", " ")}`] : []),
+              ...(f.without_condition ? [`Does not meet ${f.without_condition.replace("_", " ")}`] : []),
               "Vehicles with at least one episode in the last 12 months",
             ],
             source: "v_vehicle_status (vehicle_conditions)",
-            notes: rows.length > data.length ? [`${rows.length} vehicles match; showing ${data.length}`] : undefined,
+            notes: [`${rows.length} vehicles match in total${rows.length > data.length ? `; showing ${data.length}` : ""}`],
           },
         });
       },

@@ -19,6 +19,7 @@ export function AppHeader() {
         <nav className="flex items-center gap-4 text-sm">
           <Link href="/" className="text-muted-foreground hover:text-foreground">Dashboard</Link>
           <Link href="/assistant" className="text-muted-foreground hover:text-foreground">Assistant</Link>
+          <Link href="/evaluation" className="text-muted-foreground hover:text-foreground">Evaluation</Link>
         </nav>
         <div className="ml-auto">
           <Suspense fallback={<span className="text-sm text-muted-foreground">…</span>}>

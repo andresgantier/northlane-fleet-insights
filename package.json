@@ -14,7 +14,8 @@
     "db:sql": "node scripts/sql.mjs",
     "db:app-role": "node scripts/app-role.mjs",
     "db:demo-users": "node scripts/demo-users.mjs",
-    "ask": "tsx --conditions=react-server scripts/ask.mts"
+    "ask": "tsx --conditions=react-server scripts/ask.mts",
+    "eval": "tsx --conditions=react-server scripts/eval.mts"
   },
   "dependencies": {
     "@ai-sdk/google": "^4.0.111",

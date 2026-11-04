@@ -1,0 +1,8 @@
+{
+  "en-09": "First run: failed (answered 11, expected 12). The assistant counted the rows of a list cut to 20 vehicles instead of using the total. Fix: list results now always state the total, and the instructions say to use it and never count rows.",
+  "es-03": "First run: grading error, not an assistant error. The answer said 92,84 % and the test expected the rounded 92.8. Fix: the test compares with the exact value and accepts 1 or 2 decimals.",
+  "es-04": "First run: failed (49 instead of 47). 'Más de 20 días' was filtered as ≥ 20 instead of ≥ 21. Fix: the tool and the instructions state that 'more than N' means N + 1.",
+  "es-06": "First run: failed (answered November 2025 instead of May 2026). Monthly results were always returned in calendar order, so 'top 1' gave the first month, not the highest. Fix: monthly results can now be ranked when the question asks for it.",
+  "es-08": "First run: failed (53 instead of 37). There was no way to ask for 'condition 2 but not condition 1', so it reported all condition-2 vehicles. Fix: new without_condition filter.",
+  "en-02": "Second run: failed (22 instead of 23). The assistant used the vehicle list, which only includes vehicles with downtime in the last 12 months; one vehicle has an active FRC but no recent downtime. The KPI tool gives the right 23. Left open on purpose as a known limitation: the next fix is to point 'how many active FRCs' to the KPI tool."
+}
