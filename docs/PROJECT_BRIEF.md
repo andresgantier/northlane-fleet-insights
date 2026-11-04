@@ -67,13 +67,13 @@ Interpretación tomada de las medidas DAX del reporte (p. ej. `Condition 1`: `St
 ## 6. Diseño del asistente (decisiones fijas)
 - Vercel AI SDK con Gemini, capa gratuita. Antes de usarlo se verifica en la documentación oficial el modelo Flash vigente y sus límites; si algo dejó de ser gratis, se avisa antes.
 - **Tool calling sobre la capa semántica:** 4–6 herramientas tipadas con parámetros validados (métrica, dimensión, filtros, período, top N…). Cada herramienta llama a una vista o función de PostgreSQL con el contexto del usuario (RLS). El modelo nunca escribe SQL libre.
-- **Solo lectura:** funciones sin permisos de escritura; límite de filas por respuesta.
+- **Solo lectura:** funciones sin permisos de escritura; límite de filas por respuesta. Única excepción (Fase 5b): la acción supervisada de abrir un FRC.
 - **Gráfico:** el asistente devuelve una especificación JSON validada; el frontend la dibuja con Recharts.
 - **Control de uso:** límite diario de preguntas por sesión y global; mensaje claro si se alcanza o si Gemini limita; registro de cada pregunta para la evaluación y el log de errores.
 - `GEMINI_API_KEY` solo en el servidor.
 
 ## 7. Fuera de alcance (no proponer ni reabrir)
-Escritura de datos desde el chat, edición de FRC, correos o notificaciones, historial de chats guardado, "pin to dashboard", app móvil, modelos locales, conexión a sistemas reales de la empresa.
+Escritura de datos desde el chat (salvo la acción supervisada de la Fase 5b), edición o cierre de FRC, correos o notificaciones, historial de chats guardado, "pin to dashboard", app móvil, modelos locales, conexión a sistemas reales de la empresa.
 
 ## 8. Simplificaciones conscientes (para explicar en entrevistas)
 Neon en lugar de Supabase (la cuenta de Supabase ya usa sus 2 proyectos gratuitos; Neon no pausa proyectos por inactividad); datos ficticios de un export (no se crean en la app: es OLAP, no OLTP); fechas desplazadas para que el demo siga vigente; un FRC por vehículo; una zona horaria (Europe/Berlin); "Vehicle Age" se trata como año de fabricación y la edad se calcula.
@@ -85,6 +85,7 @@ Neon en lugar de Supabase (la cuenta de Supabase ya usa sus 2 proyectos gratuito
 3. **App base y dashboard:** login con Neon Auth, demo por rol, dashboard, ficha de vehículo. ✔ números del dashboard = consultas de verificación.
 4. **Asistente:** chat, herramientas, gráficos, "How was this calculated?", límites de uso. ✔ responde bien 10 preguntas de ejemplo en 3 idiomas y rechaza una imposible.
 5. **Evaluación:** set de 30 preguntas, script y página de resultados. ✔ % de aciertos visible y fallos explicados.
+5b. **Acción supervisada: proponer y abrir un FRC.** Si un vehículo es caso crítico, el asistente puede proponer abrir un FRC (tipo Standard). Muestra una tarjeta con vehículo, condición cumplida y valores; solo se ejecuta si el usuario hace clic en "Confirm". Reglas en la base: solo `fleet_ops` puede abrir FRC; solo para casos críticos sin FRC activo; nunca dos veces (idempotente); el modelo nunca ejecuta la acción por sí mismo, solo la propone; registro de auditoría (quién, cuándo, qué). Se agregan 2–3 preguntas a la evaluación. Se salta si la Fase 5 no da resultados sólidos. ✔ un supervisor no puede abrir FRC; Fleet Ops abre uno con confirmación, el vehículo deja de ser caso crítico y la auditoría lo muestra; repetir la acción no crea un segundo FRC.
 6. **Publicación en Vercel** y prueba de punta a punta con ambos roles y desde el celular. ✔ link público funcionando con los dos roles.
 7. **Documentación:** README con capturas y diagrama simple (cómo responde el asistente, paso a paso), `docs/PRODUCTION.md` (qué cambiaría en una empresa real: modelo de pago y privacidad de datos, monitoreo de calidad del asistente, costos), líneas de CV en inglés y alemán y página de Notion (estructura la pasa Andrés). ✔ README y documentos revisados por Andrés.
 
@@ -94,4 +95,5 @@ Neon en lugar de Supabase (la cuenta de Supabase ya usa sus 2 proyectos gratuito
 3. **Permisos heredados:** el asistente consulta como el usuario, así RLS limita lo que puede responder sin lógica extra.
 4. **Transparencia:** "How was this calculated?" muestra métrica, filtros y período: el usuario puede auditar la respuesta.
 5. **Evaluación medible:** un set de preguntas con respuestas de referencia en SQL convierte "parece que funciona" en un % de aciertos.
+7. **Acción supervisada (human-in-the-loop):** el agente detecta, propone y el usuario aprueba; la base valida permisos y evita duplicados, y todo queda auditado.
 6. **De DAX a SQL:** las reglas de caso crítico del reporte original migradas y verificadas contra el mismo resultado.

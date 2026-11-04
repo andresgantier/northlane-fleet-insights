@@ -1,0 +1,14 @@
+{
+  "fleet_ops": {
+    "email": "fleet.ops@demo.northlane.test",
+    "name": "Demo Fleet Operations",
+    "role": "fleet_ops",
+    "organization_code": null
+  },
+  "depot_supervisor": {
+    "email": "supervisor.ej@demo.northlane.test",
+    "name": "Demo Depot Supervisor",
+    "role": "depot_supervisor",
+    "organization_code": "W-EUN/EJ"
+  }
+}

@@ -55,7 +55,7 @@ Que se pueda mostrar con un link público y explicar con seguridad en entrevista
 ## Arquitectura (reglas fijas)
 - **La capa semántica vive en PostgreSQL:** vistas y funciones con las métricas y las reglas de caso crítico. Dashboard, asistente y exportes leen SOLO de ellas, así nunca se contradicen. Ninguna métrica se recalcula en TypeScript.
 - **Row Level Security en TODAS las tablas.** `fleet_ops` ve todo; `depot_supervisor` solo su sucursal. Vistas con `security_invoker = true` y funciones `SECURITY INVOKER`. La app consulta con un rol de base de solo lectura (no el dueño) y, en cada consulta, una transacción fija el usuario verificado de Neon Auth (`set_config` local + `SET LOCAL ROLE`); las políticas RLS leen ese valor. Sin usuario fijado, RLS no devuelve filas (falla cerrado).
-- **Asistente = tool calling sobre la capa semántica:** 4–6 herramientas tipadas con parámetros validados (zod); cada una llama a una vista/función con el contexto del usuario (RLS). El modelo nunca escribe SQL libre. Solo lectura y límite de filas por respuesta.
+- **Asistente = tool calling sobre la capa semántica:** 4–6 herramientas tipadas con parámetros validados (zod); cada una llama a una vista/función con el contexto del usuario (RLS). El modelo nunca escribe SQL libre. Solo lectura y límite de filas por respuesta. Única escritura (Fase 5b): abrir un FRC, que el modelo solo propone y el usuario confirma; la ejecuta una función de la base con permisos, idempotencia y auditoría.
 - La especificación del gráfico la devuelve el asistente como JSON validado; el frontend lo dibuja con Recharts.
 - `DATABASE_URL`, `GEMINI_API_KEY`, `NEON_AUTH_COOKIE_SECRET` y `DEMO_PASSWORD` solo en el servidor; nunca en el navegador. La cadena del rol dueño (`neondb_owner`) solo se usa en mi computadora para migraciones e importación; Vercel recibe la del rol de la app.
 - Control de uso: límite diario por sesión y global, mensaje claro al alcanzarlo o si Gemini limita, y registro de cada pregunta sin datos personales.
@@ -85,5 +85,6 @@ Que se pueda mostrar con un link público y explicar con seguridad en entrevista
 - `npm run db:migrate` – aplica las migraciones pendientes (`npm run db:status` las lista; `npm run db:new <name>` crea una)
 - `npm run db:import` – importa y limpia los Excel, desplaza las fechas (Fase 1)
 - `npm run db:app-role` – fija la contraseña del login de solo lectura `app_login` y escribe `APP_DATABASE_URL` en `.env.local`
+- `npm run db:demo-users` – crea o verifica las dos cuentas demo en Neon Auth y su perfil en `app_users`
 - `npm run db:sql -- <archivo.sql> [--app]` – corre consultas de verificación (`db/verify/`) como dueño o, con `--app`, como la app
 - `npm run eval` – corre el set de evaluación contra el asistente (Fase 5)

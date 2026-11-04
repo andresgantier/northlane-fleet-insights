@@ -12,9 +12,11 @@
     "db:new": "dbmate new",
     "db:import": "node scripts/import.mjs",
     "db:sql": "node scripts/sql.mjs",
-    "db:app-role": "node scripts/app-role.mjs"
+    "db:app-role": "node scripts/app-role.mjs",
+    "db:demo-users": "node scripts/demo-users.mjs"
   },
   "dependencies": {
+    "@neon/auth": "^0.8.2",
     "@neondatabase/serverless": "^1.2.0",
     "class-variance-authority": "^0.7.1",
     "cn": "^0.5.2",
