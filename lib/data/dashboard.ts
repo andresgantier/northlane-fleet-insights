@@ -65,7 +65,7 @@ export async function getDashboardData(userId: string, f: DashboardFilters): Pro
     sql`select code from public.organizations order by code`,
     sql`select name from public.vehicle_types order by name`,
     sql`select app.as_of()::text as as_of, (app.as_of() - 364)::text as window_start,
-               (select max(imported_at) from public.import_runs)::text as last_import_at`,
+               (select (max(imported_at) at time zone 'Europe/Berlin')::date from public.import_runs)::text as last_import_at`,
   ]);
 
   return {
