@@ -31,6 +31,7 @@ Everything is `SECURITY INVOKER`: row level security limits results to what the 
 | **Monthly trend** | `downtime_metrics(…, group_by => 'month')`: the metrics above per calendar month. |
 | **Vehicle ranking** | `v_vehicle_status` ordered by downtime days, episodes or MTTR; or `downtime_metrics(…, group_by => 'vehicle')` for any period. |
 | **Breakdowns** | `group_by`: `organization` (depot), `vehicle_type` (35 types), `vehicle_class` (Trailer / Truck / Van), `category` (4 downtime categories), `vehicle`, `month`, or `none`. |
+| **Critical rate** | Critical cases ÷ fleet vehicles × 100 (critical cases per 100 vehicles), last 12 months. Compares depots or vehicle types of different size. In `fleet_summary`. |
 | **Active FRC** | Status "Review Case Active – Standard" or "Review Case Active – Individual" (`fleet_review_cases.is_active`). |
 
 ## Critical cases (a Fleet Review Case should be opened)

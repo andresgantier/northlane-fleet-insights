@@ -1,10 +1,10 @@
 "use client";
 
-import { Bar, CartesianGrid, ComposedChart, Legend, Line, ReferenceArea, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { Bar, CartesianGrid, ComposedChart, Legend, Line, ReferenceArea, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import type { MonthRow } from "@/lib/data/vehicle";
 
 // Downtime days per month for one vehicle (last 12 months), stacked by category,
-// with the Fleet Review Case period shaded and the start of the 6-month window marked.
+// with the Fleet Review Case period shaded red and the last 6 months (critical-case window) shaded grey.
 
 const CATEGORIES = [
   { key: "Mechanical Breakdown", color: "#2563eb" },
@@ -47,10 +47,10 @@ export function VehicleMonthlyChart(props: {
         <ComposedChart data={data} margin={{ top: 28, right: 8, left: -12, bottom: 0 }}>
           <CartesianGrid strokeDasharray="3 3" vertical={false} />
           {frcFrom && frcTo && (
-            <ReferenceArea x1={frcFrom} x2={frcTo} fill="#fecaca" fillOpacity={0.5} label={{ value: "FRC period", position: "insideTop", fontSize: 11, fill: "#b91c1c" }} />
+            <ReferenceArea x1={frcFrom} x2={frcTo} fill="#fecaca" fillOpacity={0.5} label={{ value: "FRC period", position: "insideTopRight", fontSize: 11, fill: "#b91c1c" }} />
           )}
-          <ReferenceLine x={monthLabel(clamp(sixMonthStart))} stroke="#64748b" strokeDasharray="4 4"
-            label={{ value: "Last 6 months →", position: "insideBottomLeft", fontSize: 11, fill: "#475569" }} />
+          <ReferenceArea x1={monthLabel(clamp(sixMonthStart))} x2={monthLabel(last)} fill="#94a3b8" fillOpacity={0.12}
+            label={{ value: "Last 6 months", position: "insideTopLeft", fontSize: 11, fill: "#475569" }} />
           <XAxis dataKey="label" tick={{ fontSize: 11 }} interval={0} />
           <YAxis tick={{ fontSize: 11 }} allowDecimals={false} domain={[0, (max: number) => Math.max(4, Math.ceil(max * 1.2))]} label={{ value: "Days down", angle: -90, position: "insideLeft", offset: 20, fontSize: 11 }} />
           <Tooltip formatter={(v, name) => [`${v} days`, name]} labelFormatter={(l) => String(l)} />

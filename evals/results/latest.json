@@ -1,9 +1,9 @@
 {
-  "run_at": "2026-11-04T23:36:22.039Z",
+  "run_at": "2026-11-05T00:31:42.121Z",
   "as_of": "2026-11-05",
   "model": "gemini-3.5-flash-lite",
   "total": 35,
-  "passed": 34,
+  "passed": 35,
   "results": [
     {
       "id": "en-01",
@@ -15,33 +15,28 @@
       ],
       "match": "number",
       "expected": "100",
-      "answer": "There are currently 100 critical cases across the fleet (vehicles meeting condition 1 or 2 without an active Fleet Review Case over the last 12 months).",
+      "answer": "There are currently 100 critical cases across the fleet over the last 12 months, representing a critical rate of 10.4% per 100 vehicles.",
       "tools": [
         {
-          "tool": "list_vehicles",
-          "input": {
-            "filters": {
-              "critical_only": true
-            }
-          }
+          "tool": "get_fleet_kpis",
+          "input": {}
         },
         {
           "tool": "show_chart",
           "input": {
             "result_id": "r1",
             "chart_type": "table",
-            "x": "vehicle",
+            "x": "group",
             "y": [
-              "episodes_12m",
-              "downtime_days_12m"
+              "critical_cases"
             ],
-            "title": "Critical Cases"
+            "title": "Fleet KPIs"
           }
         }
       ],
       "pass": true,
       "reason": "Mentions 100",
-      "seconds": 9.7
+      "seconds": 9.6
     },
     {
       "id": "en-02",
@@ -53,32 +48,27 @@
       ],
       "match": "number",
       "expected": "23",
-      "answer": "There are currently 22 active Fleet Review Cases across the fleet over the last 12 months.",
+      "answer": "There are currently 23 active Fleet Review Cases across the fleet over the last 12 months.",
       "tools": [
         {
-          "tool": "list_vehicles",
-          "input": {
-            "filters": {
-              "frc_state": "active"
-            }
-          }
+          "tool": "get_fleet_kpis",
+          "input": {}
         },
         {
           "tool": "show_chart",
           "input": {
             "result_id": "r2",
             "chart_type": "table",
-            "x": "vehicle",
+            "x": "group",
             "y": [
-              "episodes_12m",
-              "downtime_days_12m"
+              "active_frcs"
             ],
-            "title": "Active Fleet Review Cases"
+            "title": "Fleet KPIs"
           }
         }
       ],
-      "pass": false,
-      "reason": "Expected 23 in the answer",
+      "pass": true,
+      "reason": "Mentions 23",
       "seconds": 10.7
     },
     {
@@ -91,7 +81,7 @@
       ],
       "match": "number",
       "expected": "25180",
-      "answer": "In the last 12 months (2025-11-06 to 2026-11-05), the fleet recorded a total of 25,180 downtime days across 2,515 episodes.",
+      "answer": "In the last 12 months (2025-11-06 to 2026-11-05), the total number of downtime days across the fleet was 25,180 days across 2,515 episodes.",
       "tools": [
         {
           "tool": "query_downtime_metrics",
@@ -112,13 +102,13 @@
             "y": [
               "downtime_days"
             ],
-            "title": "Total Downtime (Last 12 Months)"
+            "title": "Total Downtime Days (Last 12 Months)"
           }
         }
       ],
       "pass": true,
       "reason": "Mentions 25180",
-      "seconds": 11.8
+      "seconds": 10.1
     },
     {
       "id": "en-04",
@@ -130,7 +120,7 @@
       ],
       "match": "text",
       "expected": "W-EUN/EJ",
-      "answer": "Depot **W-EUN/EJ** has the most critical cases with 21 critical cases over the last 12 months, followed by W-EUN/C with 16.",
+      "answer": "Over the last 12 months, depot **W-EUN/EJ** has the most critical cases with 21 critical cases (a critical rate of 12.4 per 100 vehicles).",
       "tools": [
         {
           "tool": "get_fleet_kpis",
@@ -147,13 +137,13 @@
             "y": [
               "critical_cases"
             ],
-            "title": "Critical cases by depot (last 12 months)"
+            "title": "Critical cases by depot"
           }
         }
       ],
       "pass": true,
       "reason": "Mentions \"W-EUN/EJ\"",
-      "seconds": 11.4
+      "seconds": 13.1
     },
     {
       "id": "en-05",
@@ -165,12 +155,12 @@
       ],
       "match": "number",
       "expected": "9.1",
-      "answer": "Over the last 12 months (2025-11-06 to 2026-11-05), the Mean Time to Repair (MTTR) for vans was 9.1 days, resulting from 549 episodes and 5,012 downtime days across 202 fleet vehicles.",
+      "answer": "Over the last 12 months, the MTTR for vans was 9.1 days, based on 549 episodes across 202 fleet vehicles.",
       "tools": [
         {
           "tool": "query_downtime_metrics",
           "input": {
-            "group_by": "vehicle_class",
+            "group_by": "none",
             "period": {
               "preset": "last_12_months"
             },
@@ -194,7 +184,7 @@
       ],
       "pass": true,
       "reason": "Mentions 9.1",
-      "seconds": 14
+      "seconds": 12.1
     },
     {
       "id": "en-06",
@@ -206,7 +196,7 @@
       ],
       "match": "number",
       "expected": "54",
-      "answer": "Vehicle 54 (license plate I-AW376) had the most downtime this year with 309 downtime days across 1 episode during the period `this_year` (2026-01-01 to 2026-11-05).",
+      "answer": "Vehicle 54 (license plate I-AW376) had the most downtime days this year so far, with 309 downtime days across 1 episode from 2026-01-01 to 2026-11-05.",
       "tools": [
         {
           "tool": "query_downtime_metrics",
@@ -225,18 +215,18 @@
           "tool": "show_chart",
           "input": {
             "result_id": "r6",
-            "chart_type": "bar",
+            "chart_type": "table",
             "x": "group",
             "y": [
               "downtime_days"
             ],
-            "title": "Vehicle with the most downtime days this year"
+            "title": "Vehicle with Most Downtime Days This Year"
           }
         }
       ],
       "pass": true,
       "reason": "Mentions 54",
-      "seconds": 21.8
+      "seconds": 9.8
     },
     {
       "id": "en-07",
@@ -248,7 +238,7 @@
       ],
       "match": "number",
       "expected": "13",
-      "answer": "There were 13 downtime episodes caused by accident or collision damage over the last 6 months (from May 10 to November 5, 2026), accounting for 513 downtime days across 13 vehicles.",
+      "answer": "In the last 6 months (2026-05-10 to 2026-11-05), there were 13 downtime episodes caused by accident or collision damage.",
       "tools": [
         {
           "tool": "query_downtime_metrics",
@@ -277,7 +267,7 @@
       ],
       "pass": true,
       "reason": "Mentions 13",
-      "seconds": 10.2
+      "seconds": 9.9
     },
     {
       "id": "en-08",
@@ -289,7 +279,7 @@
       ],
       "match": "text",
       "expected": "Hazardous Materials Tanker",
-      "answer": "Over the last 12 months, the vehicle type with the lowest availability was the Hazardous Materials Tanker, with an availability of 86.92% and 764 downtime days across the period.",
+      "answer": "Over the last 12 months, the vehicle type with the lowest availability was Hazardous Materials Tanker at 86.92% (764 downtime days across 35 episodes).",
       "tools": [
         {
           "tool": "query_downtime_metrics",
@@ -313,13 +303,13 @@
             "y": [
               "availability_pct"
             ],
-            "title": "Lowest availability by vehicle type (Last 12 months)"
+            "title": "Lowest availability by vehicle type (last 12 months)"
           }
         }
       ],
       "pass": true,
       "reason": "Mentions \"Hazardous Materials Tanker\"",
-      "seconds": 10.7
+      "seconds": 10.4
     },
     {
       "id": "en-09",
@@ -332,7 +322,7 @@
       ],
       "match": "number",
       "expected": "12",
-      "answer": "Out of those critical cases in depot W-EUN/C, 12 meet condition 1 (3 or more episodes started in the last 180 days after the last FRC ended).",
+      "answer": "Out of those critical cases in depot W-EUN/C, 8 vehicles meet condition 1 over the last 12 months.",
       "tools": [
         {
           "tool": "list_vehicles",
@@ -340,7 +330,7 @@
             "filters": {
               "organization": "W-EUN/C",
               "critical_only": true,
-              "condition": "condition_1"
+              "without_condition": "condition_2"
             }
           }
         },
@@ -359,7 +349,7 @@
       ],
       "pass": true,
       "reason": "Mentions 12",
-      "seconds": 31.4
+      "seconds": 21.1
     },
     {
       "id": "en-10",
@@ -371,11 +361,11 @@
       ],
       "match": "refusal",
       "expected": "Refusal (no data shown)",
-      "answer": "Repair costs are not available in our fleet management system. I can provide the number of downtime days, episodes, or availability for mechanical breakdowns last year instead.",
+      "answer": "Repair costs are not available in the system. I can, however, provide downtime days, episodes, or other metrics for mechanical breakdowns last year if you'd like.",
       "tools": [],
       "pass": true,
       "reason": "Declined without showing data",
-      "seconds": 9.5
+      "seconds": 8.8
     },
     {
       "id": "en-11",
@@ -387,11 +377,11 @@
       ],
       "match": "refusal",
       "expected": "Refusal (no data shown)",
-      "answer": "I cannot answer questions about drivers, as driver data is not available in our fleet management system. \n\nInstead, I can help you analyze vehicle downtime, maintenance categories (such as Mechanical Breakdown), and critical cases across different depots or vehicle types over the last 12 months. Would you like to see which vehicle type or depot has the most mechanical breakdowns?",
+      "answer": "Driver data is not available in the system, so I cannot track which driver causes the most breakdowns. Instead, I can show you which vehicles, vehicle types, or depots have the most mechanical breakdowns or downtime episodes. Would you like to see that?",
       "tools": [],
       "pass": true,
       "reason": "Declined without showing data",
-      "seconds": 9.4
+      "seconds": 8.6
     },
     {
       "id": "es-01",
@@ -403,7 +393,7 @@
       ],
       "match": "number",
       "expected": "904",
-      "answer": "En los últimos 12 meses (del 2025-11-06 al 2026-11-05), 904 vehículos registraron al menos una baja.",
+      "answer": "En los últimos 12 meses (del 2025-11-06 al 2026-11-05), un total de 904 vehículos registraron al menos una baja.",
       "tools": [
         {
           "tool": "query_downtime_metrics",
@@ -424,13 +414,13 @@
             "y": [
               "vehicles_with_downtime"
             ],
-            "title": "Vehicles with downtime in the last 12 months"
+            "title": "Vehículos con baja en los últimos 12 meses"
           }
         }
       ],
       "pass": true,
       "reason": "Mentions 904",
-      "seconds": 19.6
+      "seconds": 10.7
     },
     {
       "id": "es-02",
@@ -442,7 +432,7 @@
       ],
       "match": "number",
       "expected": "476",
-      "answer": "En los últimos 12 meses (del 6 de noviembre de 2025 al 5 de noviembre de 2026), se registraron 476 días de baja por mantenimiento programado, distribuidos en 394 episodios.",
+      "answer": "En los últimos 12 meses (del 2025-11-06 al 2026-11-05), se registraron 476 días de baja por mantenimiento programado, distribuidos en 394 episodios.",
       "tools": [
         {
           "tool": "query_downtime_metrics",
@@ -465,13 +455,13 @@
             "y": [
               "downtime_days"
             ],
-            "title": "Downtime by Scheduled Maintenance (Last 12 Months)"
+            "title": "Días de baja por mantenimiento programado (últimos 12 meses)"
           }
         }
       ],
       "pass": true,
       "reason": "Mentions 476",
-      "seconds": 11.1
+      "seconds": 10.9
     },
     {
       "id": "es-03",
@@ -483,11 +473,13 @@
       ],
       "match": "number",
       "expected": "92.84",
-      "answer": "La disponibilidad de la flota en los últimos 12 meses (del 2025-11-06 al 2026-11-05) fue del 92,84 %, con un total de 25 180 días de inactividad repartidos en 2515 episodios para los 964 vehículos de la flota.",
+      "answer": "En los últimos 12 meses (del 2025-11-06 al 2026-11-05), la disponibilidad general de la flota fue del 92,84%.",
       "tools": [
         {
           "tool": "get_fleet_kpis",
-          "input": {}
+          "input": {
+            "group_by": "none"
+          }
         },
         {
           "tool": "show_chart",
@@ -498,13 +490,13 @@
             "y": [
               "availability_pct"
             ],
-            "title": "Fleet KPIs - Last 12 months"
+            "title": "Disponibilidad de la flota (últimos 12 meses)"
           }
         }
       ],
       "pass": true,
       "reason": "Mentions 92.84",
-      "seconds": 11.2
+      "seconds": 10.3
     },
     {
       "id": "es-04",
@@ -516,7 +508,7 @@
       ],
       "match": "number",
       "expected": "47",
-      "answer": "En los últimos 6 meses (del 2026-05-10 al 2026-05-05), se registraron 47 remolques con más de 20 días de inactividad. Los resultados se muestran en la tabla, ordenados por días de inactividad.",
+      "answer": "En los últimos 6 meses (del 10 de mayo al 5 de noviembre de 2026), se registraron 47 remolques con más de 20 días de parada. A continuación se muestran los principales remolques según los días de inactividad.",
       "tools": [
         {
           "tool": "query_downtime_metrics",
@@ -541,13 +533,13 @@
               "downtime_days",
               "episodes"
             ],
-            "title": "Remolques con más de 20 días de inactividad (últimos 6 meses)"
+            "title": "Remolques con más de 20 días de parada (últimos 6 meses)"
           }
         }
       ],
       "pass": true,
       "reason": "Mentions 47",
-      "seconds": 15.5
+      "seconds": 11.2
     },
     {
       "id": "es-05",
@@ -560,7 +552,7 @@
       ],
       "match": "number",
       "expected": "3",
-      "answer": "En los últimos 6 meses, 3 remolques refrigerados (*Refrigerated Trailer (Reefer)*) registraron más de 20 días de inactividad, con un máximo de 120 días en el vehículo 166 · NL-TI912.",
+      "answer": "En los últimos 6 meses, se identificaron **3 remolques refrigerados** que pasaron más de 20 días parados.",
       "tools": [
         {
           "tool": "query_downtime_metrics",
@@ -573,25 +565,27 @@
               "vehicle_class": "Trailer",
               "vehicle_type": "Refrigerated Trailer (Reefer)"
             },
-            "min_downtime_days": 21
+            "min_downtime_days": 21,
+            "top_n": 20
           }
         },
         {
           "tool": "show_chart",
           "input": {
-            "result_id": "r17",
-            "chart_type": "bar",
+            "result_id": "r16",
+            "chart_type": "table",
             "x": "group",
             "y": [
-              "downtime_days"
+              "downtime_days",
+              "episodes"
             ],
-            "title": "Remolques refrigerados con más de 20 días de parada (últimos 6 meses)"
+            "title": "Remolques refrigerados con más de 20 días parados (últimos 6 meses)"
           }
         }
       ],
       "pass": true,
       "reason": "Mentions 3",
-      "seconds": 37.6
+      "seconds": 23.9
     },
     {
       "id": "es-06",
@@ -603,7 +597,7 @@
       ],
       "match": "month",
       "expected": "2026-05",
-      "answer": "En los últimos 12 meses (del 6 de noviembre de 2025 al 5 de noviembre de 2026), el mes con más días de baja fue mayo de 2026 (`2026-05`), con un total de 3.284 días de baja y 450 episodios.",
+      "answer": "El mes con más días de baja en los últimos 12 meses fue mayo de 2026 (`2026-05`), con un total de 3.284 días de baja y 450 episodios.",
       "tools": [
         {
           "tool": "query_downtime_metrics",
@@ -621,19 +615,19 @@
         {
           "tool": "show_chart",
           "input": {
-            "result_id": "r18",
-            "chart_type": "line",
+            "result_id": "r17",
+            "chart_type": "bar",
             "x": "group",
             "y": [
               "downtime_days"
             ],
-            "title": "Downtime Days by Month (Last 12 Months)"
+            "title": "Downtime by month (Last 12 months)"
           }
         }
       ],
       "pass": true,
       "reason": "Mentions 2026-05",
-      "seconds": 14.3
+      "seconds": 11
     },
     {
       "id": "es-07",
@@ -645,14 +639,49 @@
       ],
       "match": "number",
       "expected": "11",
-      "answer": "La sucursal W-EUN/EL tiene un total de 11 casos críticos en los últimos 12 meses.",
+      "answer": "La sucursal W-EUN/EL cuenta con 11 casos críticos en los últimos 12 meses (periodo del 2025-11-06 al 2026-11-05).",
+      "tools": [
+        {
+          "tool": "get_fleet_kpis",
+          "input": {
+            "organization": "W-EUN/EL"
+          }
+        },
+        {
+          "tool": "show_chart",
+          "input": {
+            "result_id": "r18",
+            "chart_type": "table",
+            "x": "group",
+            "y": [
+              "critical_cases"
+            ],
+            "title": "KPIs para W-EUN/EL"
+          }
+        }
+      ],
+      "pass": true,
+      "reason": "Mentions 11",
+      "seconds": 10.7
+    },
+    {
+      "id": "es-08",
+      "language": "es",
+      "difficulty": "hard",
+      "role": "fleet_ops",
+      "turns": [
+        "¿Cuántos casos críticos cumplen la condición 2 pero no la condición 1?"
+      ],
+      "match": "number",
+      "expected": "37",
+      "answer": "En los últimos 12 meses, hay un total de 37 casos críticos que cumplen la condición 2 (20 o más días de inactividad) pero no la condición 1 (menos de 3 episodios).",
       "tools": [
         {
           "tool": "list_vehicles",
           "input": {
             "filters": {
-              "organization": "W-EUN/EL",
-              "critical_only": true
+              "critical_only": true,
+              "without_condition": "condition_1"
             }
           }
         },
@@ -666,51 +695,13 @@
               "episodes_12m",
               "downtime_days_12m"
             ],
-            "title": "Casos críticos - W-EUN/EL"
-          }
-        }
-      ],
-      "pass": true,
-      "reason": "Mentions 11",
-      "seconds": 22.7
-    },
-    {
-      "id": "es-08",
-      "language": "es",
-      "difficulty": "hard",
-      "role": "fleet_ops",
-      "turns": [
-        "¿Cuántos casos críticos cumplen la condición 2 pero no la condición 1?"
-      ],
-      "match": "number",
-      "expected": "37",
-      "answer": "En los últimos 12 meses, hay **37** vehículos que cumplen la condición 2 (20 o más días de inactividad) pero no la condición 1 (menos de 3 episodios), sin FRC activo.",
-      "tools": [
-        {
-          "tool": "list_vehicles",
-          "input": {
-            "filters": {
-              "condition": "condition_2",
-              "without_condition": "condition_1"
-            }
-          }
-        },
-        {
-          "tool": "show_chart",
-          "input": {
-            "result_id": "r20",
-            "chart_type": "table",
-            "x": "vehicle",
-            "y": [
-              "downtime_days_12m"
-            ],
-            "title": "Vehicles meeting Condition 2 but not Condition 1"
+            "title": "Critical cases meeting condition 2 but not condition 1"
           }
         }
       ],
       "pass": true,
       "reason": "Mentions 37",
-      "seconds": 25.5
+      "seconds": 79.5
     },
     {
       "id": "es-09",
@@ -722,7 +713,7 @@
       ],
       "match": "text",
       "expected": "FRC / Fleet Review / caso de revisión / revisión de flota",
-      "answer": "El vehículo 636 (PL-4428) no es considerado un caso crítico porque ya cuenta con un caso de revisión de flota activo (*Review Case Active – Standard* desde el 17 de julio de 2026), requisito indispensable para ser clasificado como tal.",
+      "answer": "El vehículo 636 no se considera un caso crítico porque ya tiene un Caso de Revisión de Flota (FRC) activo (estado \"Review Case Active – Standard\" iniciado el 17-07-2026), condición que excluye la clasificación como caso crítico según los criterios del sistema.",
       "tools": [
         {
           "tool": "get_vehicle_details",
@@ -733,19 +724,19 @@
         {
           "tool": "show_chart",
           "input": {
-            "result_id": "r21",
+            "result_id": "r20",
             "chart_type": "table",
             "x": "start_date",
             "y": [
               "downtime_days"
             ],
-            "title": "Episodes of vehicle 636 (PL-4428)"
+            "title": "Episodios del vehículo 636"
           }
         }
       ],
       "pass": true,
-      "reason": "Mentions \"caso de revisión\"",
-      "seconds": 20.5
+      "reason": "Mentions \"FRC\"",
+      "seconds": 11.9
     },
     {
       "id": "es-10",
@@ -757,7 +748,7 @@
       ],
       "match": "refusal",
       "expected": "Refusal (no data shown)",
-      "answer": "Lo siento, no puedo realizar previsiones sobre los días de baja futuros. En su lugar, puedo informarle sobre los días de baja registrados en meses anteriores, por ejemplo, el mes pasado o durante los últimos 12 meses.",
+      "answer": "No es posible prever los días de baja para el próximo mes, ya que no disponemos de datos de previsión. En su lugar, puedo mostrarle los días de baja registrados el mes pasado o en los últimos 12 meses.",
       "tools": [],
       "pass": true,
       "reason": "Declined without showing data",
@@ -773,11 +764,11 @@
       ],
       "match": "refusal",
       "expected": "Refusal (no data shown)",
-      "answer": "No disponemos de datos sobre el consumo de combustible, ya que esa información no está registrada en el sistema. En su lugar, puedo informarle sobre el tiempo de inactividad (downtime), las categorías de averías o los casos de revisión de flota (FRC).",
+      "answer": "El consumo de combustible no está disponible en nuestros datos. Puedo informarle sobre los días de inactividad, los episodios de avería o los casos de revisión de la flota (FRC) de los vehículos.",
       "tools": [],
       "pass": true,
       "reason": "Declined without showing data",
-      "seconds": 9.2
+      "seconds": 8.9
     },
     {
       "id": "de-01",
@@ -789,30 +780,34 @@
       ],
       "match": "number",
       "expected": "25180",
-      "answer": "In den letzten 12 Monaten (2025-11-06 bis 2026-11-05) gab es insgesamt 25.180 Ausfalltage über die gesamte Flotte hinweg.",
+      "answer": "In den letzten 12 Monaten (2025-11-06 bis 2026-11-05) gab es insgesamt 25.180 Ausfalltage bei 2.515 Ausfällen über die gesamte Flotte.",
       "tools": [
         {
-          "tool": "get_fleet_kpis",
+          "tool": "query_downtime_metrics",
           "input": {
-            "group_by": "none"
+            "group_by": "none",
+            "period": {
+              "preset": "last_12_months"
+            },
+            "filters": {}
           }
         },
         {
           "tool": "show_chart",
           "input": {
-            "result_id": "r22",
+            "result_id": "r21",
             "chart_type": "table",
             "x": "group",
             "y": [
               "downtime_days"
             ],
-            "title": "Fleet KPIs"
+            "title": "Ausfalltage in den letzten 12 Monaten"
           }
         }
       ],
       "pass": true,
       "reason": "Mentions 25180",
-      "seconds": 10.7
+      "seconds": 9.5
     },
     {
       "id": "de-02",
@@ -839,13 +834,13 @@
             "y": [
               "fleet_vehicles"
             ],
-            "title": "Gesamte Flotten-KPIs (letzte 12 Monate)"
+            "title": "Flotten-KPIs"
           }
         }
       ],
       "pass": true,
       "reason": "Mentions 964",
-      "seconds": 9.5
+      "seconds": 80.2
     },
     {
       "id": "de-03",
@@ -857,7 +852,7 @@
       ],
       "match": "text",
       "expected": "Mechanical Breakdown",
-      "answer": "Im Kalenderjahr 2025 verursachten mechanische Ausfälle (*Mechanical Breakdown*) mit 11.538 Ausfalltagen die weitaus meisten Ausfälle im Kalenderjahr, gefolgt von Unfallschäden (*Accident/Collision Damage*) mit 729 Tagen.",
+      "answer": "Im Kalenderjahr 2025 verursachte die Kategorie **Mechanical Breakdown** (Mechanischer Defekt) mit insgesamt **11.538** Ausfalltagen (bei 773 Ausfällen) die meisten Ausfalltage.",
       "tools": [
         {
           "tool": "query_downtime_metrics",
@@ -867,7 +862,9 @@
               "preset": "last_year"
             },
             "filters": {},
-            "top_n": 10
+            "sort_by": "downtime_days",
+            "sort_order": "desc",
+            "top_n": 1
           }
         },
         {
@@ -885,7 +882,7 @@
       ],
       "pass": true,
       "reason": "Mentions \"Mechanical Breakdown\"",
-      "seconds": 25.6
+      "seconds": 10.1
     },
     {
       "id": "de-04",
@@ -897,7 +894,7 @@
       ],
       "match": "number",
       "expected": "10.6",
-      "answer": "Die MTTR (Mean Time To Repair) für Anhänger lag in den letzten 6 Monaten (vom 2026-05-10 bis 2026-11-05) bei 10,6 Tagen bei insgesamt 371 Ausfällen.",
+      "answer": "Die durchschnittliche MTTR (Mean Time To Repair) für Anhänger lag in den letzten 6 Monaten (2026-05-10 bis 2026-11-05) bei 10,6 Tagen über insgesamt 371 Ausfälle hinweg.",
       "tools": [
         {
           "tool": "query_downtime_metrics",
@@ -920,13 +917,13 @@
             "y": [
               "mttr_days"
             ],
-            "title": "MTTR für Anhänger (letzte 6 Monate)"
+            "title": "MTTR für Anhänger in den letzten 6 Monaten"
           }
         }
       ],
       "pass": true,
       "reason": "Mentions 10.6",
-      "seconds": 18
+      "seconds": 11.1
     },
     {
       "id": "de-05",
@@ -938,7 +935,7 @@
       ],
       "match": "number",
       "expected": "16",
-      "answer": "Fahrzeug 946 hatte in den letzten 12 Monaten insgesamt 16 Ausfallepisoden (mit einer Gesamtdauer von 73 Ausfalltagen).",
+      "answer": "Fahrzeug 946 hatte in den letzten 12 Monaten insgesamt 16 Ausfallepisoden.",
       "tools": [
         {
           "tool": "get_vehicle_details",
@@ -955,13 +952,13 @@
             "y": [
               "downtime_days"
             ],
-            "title": "Ausfallepisoden von Fahrzeug 946"
+            "title": "Ausfallepisoden für Fahrzeug 946"
           }
         }
       ],
       "pass": true,
       "reason": "Mentions 16",
-      "seconds": 20.5
+      "seconds": 10.6
     },
     {
       "id": "de-06",
@@ -973,7 +970,7 @@
       ],
       "match": "text",
       "expected": "W-EUN/C",
-      "answer": "Das Depot W-EUN/C verzeichnete in den letzten 3 Monaten (08.08.2026–05.11.2026) mit 136 Ausfalltagen bei 14 Episoden die meisten Ausfalltage für Lkw.",
+      "answer": "Das Depot W-EUN/C verzeichnete in den letzten 3 Monaten (2026-08-08 bis 2026-11-05) die meisten Ausfalltage bei Lkw mit insgesamt 136 Ausfalltagen verteilt auf 14 Episoden.",
       "tools": [
         {
           "tool": "query_downtime_metrics",
@@ -999,13 +996,13 @@
             "y": [
               "downtime_days"
             ],
-            "title": "Downtime by depot (Trucks, Last 3 months)"
+            "title": "Top Depot nach Ausfalltagen für Lkw (letzte 3 Monate)"
           }
         }
       ],
       "pass": true,
       "reason": "Mentions \"W-EUN/C\"",
-      "seconds": 17.4
+      "seconds": 10.1
     },
     {
       "id": "de-07",
@@ -1017,11 +1014,11 @@
       ],
       "match": "refusal",
       "expected": "Refusal (no data shown)",
-      "answer": "Kosten stehen leider nicht zur Verfügung. Ich kann Ihnen jedoch Auskunft über die Stillstandstage, die Anzahl der Ausfälle, die Verfügbarkeit oder die MTTR für die geplante Wartung (Scheduled Maintenance) im Depot W-EUN/EJ geben.",
+      "answer": "Kostenangaben stehen nicht zur Verfügung. Ich kann Ihnen stattdessen Auskunft über die Stillstandstage, die Anzahl der Episoden oder die Häufigkeit von Wartungen (kategorisiert als „Scheduled Maintenance“) im Depot W-EUN/EJ geben.",
       "tools": [],
       "pass": true,
       "reason": "Declined without showing data",
-      "seconds": 11.5
+      "seconds": 8.7
     },
     {
       "id": "sup-01",
@@ -1032,8 +1029,8 @@
         "¿Cuántos casos críticos hay en mi sucursal?"
       ],
       "match": "number",
-      "expected": "21",
-      "answer": "En tu sucursal (W-EUN/EJ) hay un total de 21 casos críticos en los últimos 12 meses.",
+      "expected": "20",
+      "answer": "En los últimos 12 meses, hay 20 casos críticos en tu sucursal (W-EUN/EJ), lo que representa una tasa crítica del 11,8% sobre un total de 169 vehículos de la flota.",
       "tools": [
         {
           "tool": "get_fleet_kpis",
@@ -1044,34 +1041,19 @@
         {
           "tool": "show_chart",
           "input": {
-            "x": "group",
-            "result_id": "r1",
-            "y": [
-              "critical_cases",
-              "active_frcs",
-              "fleet_vehicles"
-            ],
-            "chart_type": "table",
-            "title": "Fleet KPIs - W-EUN/EJ"
-          }
-        },
-        {
-          "tool": "show_chart",
-          "input": {
             "result_id": "r1",
             "chart_type": "table",
             "x": "group",
             "y": [
-              "critical_cases",
-              "active_frcs"
+              "critical_cases"
             ],
-            "title": "Fleet KPIs - W-EUN/EJ"
+            "title": "Casos críticos en W-EUN/EJ"
           }
         }
       ],
       "pass": true,
-      "reason": "Mentions 21",
-      "seconds": 11.5
+      "reason": "Mentions 20",
+      "seconds": 12.6
     },
     {
       "id": "sup-02",
@@ -1087,7 +1069,7 @@
       "tools": [],
       "pass": true,
       "reason": "Declined without showing data",
-      "seconds": 8.2
+      "seconds": 8.1
     },
     {
       "id": "sup-03",
@@ -1099,7 +1081,7 @@
       ],
       "match": "number",
       "expected": "16",
-      "answer": "Das kritische Fahrzeug mit den meisten Ausfalltagen in Ihrem Depot (W-EUN/EJ) in den letzten 12 Monaten ist der Step Deck Trailer **16 · B FY-33** mit 312 Ausfalltagen und 3 Episoden. Insgesamt gibt es 21 kritische Fälle in Ihrem Depot.",
+      "answer": "Das kritische Fahrzeug mit den meisten Ausfalltagen in Ihrem Depot W-EUN/EJ in den letzten 12 Monaten ist **16 · B FY-33** (Step Deck Trailer) mit 312 Ausfalltagen und 3 Episoden. Insgesamt gibt es 20 kritische Fälle in diesem Depot.",
       "tools": [
         {
           "tool": "list_vehicles",
@@ -1121,13 +1103,13 @@
             "y": [
               "downtime_days_12m"
             ],
-            "title": "Critical cases (Top downtime)"
+            "title": "Kritische Fälle nach Ausfalltagen"
           }
         }
       ],
       "pass": true,
       "reason": "Mentions 16",
-      "seconds": 10.2
+      "seconds": 11.1
     },
     {
       "id": "frc-01",
@@ -1139,7 +1121,7 @@
       ],
       "match": "proposal",
       "expected": "FRC proposal for vehicle 22, confirmable",
-      "answer": "Please review the evidence for vehicle 22 in the card below. You can confirm opening the Fleet Review Case using the button.",
+      "answer": "The card below shows the evidence for vehicle 22. You can review the details and confirm opening the Fleet Review Case using the button.",
       "tools": [
         {
           "tool": "propose_frc",
@@ -1167,7 +1149,7 @@
       ],
       "pass": true,
       "reason": "Proposed FRC for vehicle 22 (can confirm: true); nothing written",
-      "seconds": 9
+      "seconds": 10.4
     },
     {
       "id": "frc-02",
@@ -1179,7 +1161,7 @@
       ],
       "match": "proposal",
       "expected": "FRC proposal for vehicle 684, not confirmable",
-      "answer": "La tarjeta muestra la evidencia para el vehículo 684 (placa CZ 453 CF). No es posible confirmar la apertura directamente ya que solo Operaciones de Flota puede abrir un Caso de Revisión de Flota (FRC); por favor, solicítelo a Operaciones de Flota.",
+      "answer": "El vehículo 684 (placa CZ 453 CF) ya tiene un caso activo de revisión de flota (FRC status: Review Case Active – Standard), por lo que no se puede abrir uno nuevo. Además, recuerda que solo Operaciones de Flota puede abrir un FRC, por lo que debes solicitarlo a dicho departamento si fuera necesario.",
       "tools": [
         {
           "tool": "propose_frc",
@@ -1196,10 +1178,10 @@
               "plate_nr": "CZ 453 CF",
               "vehicle_type": "Refrigerated Trailer (Reefer)",
               "organization_code": "W-EUN/EJ",
-              "frc_status": null,
+              "frc_status": "Review Case Active – Standard",
               "cond1_episodes": 5,
               "cond2_days": 11,
-              "condition_1": true,
+              "condition_1": false,
               "condition_2": false
             }
           }
@@ -1207,7 +1189,7 @@
       ],
       "pass": true,
       "reason": "Proposed FRC for vehicle 684 (can confirm: false); nothing written",
-      "seconds": 8.9
+      "seconds": 9.2
     },
     {
       "id": "frc-03",
@@ -1219,7 +1201,7 @@
       ],
       "match": "proposal",
       "expected": "FRC proposal for vehicle 636, not confirmable",
-      "answer": "Die Karte zeigt die Details für Fahrzeug 636. Es kann derzeit kein neuer Fleet Review Case eröffnet werden, da für dieses Fahrzeug bereits ein aktiver Fleet Review Case vorliegt.",
+      "answer": "Die Karte zeigt die Details für Fahrzeug 636 (Platte PL-4428). Ein Fleet Review Case kann derzeit nicht eröffnet werden, da für dieses Fahrzeug bereits ein aktiver Fleet Review Case vorliegt.",
       "tools": [
         {
           "tool": "propose_frc",
@@ -1247,7 +1229,7 @@
       ],
       "pass": true,
       "reason": "Proposed FRC for vehicle 636 (can confirm: false); nothing written",
-      "seconds": 8.9
+      "seconds": 9.6
     }
   ]
 }

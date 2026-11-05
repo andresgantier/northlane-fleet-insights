@@ -27,7 +27,7 @@ export type DataResult = {
 
 export type ChartSpec = {
   result_id: string;
-  chart_type: "bar" | "line" | "table";
+  chart_type: "bar" | "line" | "donut" | "table";
   x: string;
   y: string[];
   title: string;

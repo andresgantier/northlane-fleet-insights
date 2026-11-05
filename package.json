@@ -15,7 +15,8 @@
     "db:app-role": "node scripts/app-role.mjs",
     "db:demo-users": "node scripts/demo-users.mjs",
     "ask": "tsx --conditions=react-server scripts/ask.mts",
-    "eval": "tsx --conditions=react-server scripts/eval.mts"
+    "eval": "tsx --conditions=react-server scripts/eval.mts",
+    "screenshots": "node scripts/screenshots.mjs"
   },
   "dependencies": {
     "@ai-sdk/google": "^4.0.111",
@@ -45,6 +46,7 @@
     "dbmate": "^2.37.0",
     "eslint": "^9",
     "eslint-config-next": "16.4.5",
+    "playwright-core": "^1.64.1",
     "tailwindcss": "^4",
     "tsx": "^4.23.15",
     "typescript": "^5"

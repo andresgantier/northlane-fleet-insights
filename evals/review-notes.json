@@ -4,5 +4,5 @@
   "es-04": "First run: failed (49 instead of 47). 'Más de 20 días' was filtered as ≥ 20 instead of ≥ 21. Fix: the tool and the instructions state that 'more than N' means N + 1.",
   "es-06": "First run: failed (answered November 2025 instead of May 2026). Monthly results were always returned in calendar order, so 'top 1' gave the first month, not the highest. Fix: monthly results can now be ranked when the question asks for it.",
   "es-08": "First run: failed (53 instead of 37). There was no way to ask for 'condition 2 but not condition 1', so it reported all condition-2 vehicles. Fix: new without_condition filter.",
-  "en-02": "Second run: failed (22 instead of 23). The assistant used the vehicle list, which only includes vehicles with downtime in the last 12 months; one vehicle has an active FRC but no recent downtime. The KPI tool gives the right 23. Left open on purpose as a known limitation: the next fix is to point 'how many active FRCs' to the KPI tool."
+  "en-02": "Second run: failed (22 instead of 23): the assistant used the vehicle list, which then only included vehicles with downtime; one vehicle has an active FRC but no recent downtime. Since then the vehicle list includes every vehicle and the instructions forbid counting rows; the third run passed."
 }

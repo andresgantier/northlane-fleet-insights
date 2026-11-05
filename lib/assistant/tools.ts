@@ -262,7 +262,8 @@ export function buildTools(ctx: ToolContext) {
 
     get_fleet_kpis: tool({
       description:
-        "Headline KPIs for the last 12 months: number of critical cases, active FRCs, fleet vehicles, vehicles with " +
+        "Headline KPIs for the last 12 months: number of critical cases, critical rate (critical cases per 100 fleet " +
+        "vehicles, to compare depots or types of different size), active FRCs, fleet vehicles, vehicles with " +
         "downtime, episodes, downtime days, MTTR, availability, condition-3-only vehicles. Use group_by organization " +
         "or vehicle_type to compare these KPIs (e.g. which depot has the most critical cases).",
       inputSchema: z.object({
@@ -296,6 +297,7 @@ export function buildTools(ctx: ToolContext) {
             mttr_days: num(r?.mttr_days),
             availability_pct: num(r?.availability_pct),
             condition_3_only: num(r?.condition_3_only),
+            critical_rate_pct: num(r?.critical_rate_pct),
           }))
           .filter((r) => (r.fleet_vehicles ?? 0) > 0)
           .sort((a, b) => (b.critical_cases ?? 0) - (a.critical_cases ?? 0) || a.group.localeCompare(b.group));
@@ -305,6 +307,7 @@ export function buildTools(ctx: ToolContext) {
           columns: [
             { key: "group", label: groupLabel, kind: "text" },
             { key: "critical_cases", label: "Critical cases", kind: "number" },
+            { key: "critical_rate_pct", label: "Critical rate % (per 100 vehicles)", kind: "percent" },
             { key: "active_frcs", label: "Active FRCs", kind: "number" },
             { key: "fleet_vehicles", label: "Fleet vehicles", kind: "number" },
             { key: "vehicles_with_downtime", label: "Vehicles with downtime", kind: "number" },
@@ -322,6 +325,7 @@ export function buildTools(ctx: ToolContext) {
             metric: [
               "Same definitions as the dashboard header (fleet_summary): last 12 months",
               "Critical case = no active FRC and (≥ 3 counted episodes or ≥ 20 days in counted episodes)",
+              "Critical rate = critical cases ÷ fleet vehicles × 100",
             ],
             period: `Last 12 months: ${addDaysIso(ctx.asOf, -364)} to ${ctx.asOf}`,
             filters: [
@@ -331,6 +335,11 @@ export function buildTools(ctx: ToolContext) {
               ...(groupBy !== "none" ? [`Grouped by ${groupLabel.toLowerCase()}`] : []),
             ],
             source: "fleet_summary()",
+            // Totals across groups are computed here (counts are additive), never by the model.
+            notes: groupBy === "none" ? undefined : [
+              `Total across ${data.length} groups: ${data.reduce((n, r) => n + (r.critical_cases ?? 0), 0)} critical cases, ` +
+                `${data.reduce((n, r) => n + (r.fleet_vehicles ?? 0), 0)} vehicles, ${data.reduce((n, r) => n + (r.active_frcs ?? 0), 0)} active FRCs`,
+            ],
           },
         });
       },
@@ -429,11 +438,13 @@ export function buildTools(ctx: ToolContext) {
     show_chart: tool({
       description:
         "Display a data result to the user. Call exactly once per answer, after the data tools, with the result_id " +
-        "you want to show. chart_type: line for monthly trends, bar for rankings and breakdowns (up to ~15 rows), " +
-        "table for lists of vehicles, KPIs or anything else.",
+        "you want to show. chart_type: line for monthly trends, bar for rankings and breakdowns, donut for the share " +
+        "of a total across up to 20 groups (one y column of counts or days, not percentages or averages), " +
+        "table for lists of vehicles, KPIs or anything else. Use the chart type the user asks for when it is allowed. " +
+        "Do not mix columns with different units in one chart (e.g. a rate and a vehicle count): show the one asked for.",
       inputSchema: z.object({
         result_id: z.string().describe("result_id returned by a data tool in this answer"),
-        chart_type: z.enum(["bar", "line", "table"]),
+        chart_type: z.enum(["bar", "line", "donut", "table"]),
         x: z.string().describe("Column key for categories / months"),
         y: z.array(z.string()).min(1).max(2).describe("1–2 numeric column keys"),
         title: z.string().min(3).max(80),
@@ -446,6 +457,12 @@ export function buildTools(ctx: ToolContext) {
         const bad = spec.y.filter((k) => !["number", "percent"].includes(cols.get(k)?.kind ?? ""));
         if (spec.chart_type !== "table" && bad.length)
           return { ok: false, error: `y must be numeric columns of this result: ${r.columns.filter((c) => c.kind === "number" || c.kind === "percent").map((c) => c.key).join(", ")}` };
+        if (spec.chart_type === "donut") {
+          if (spec.y.length !== 1) return { ok: false, error: "A donut shows exactly one y column." };
+          if (cols.get(spec.y[0])?.kind !== "number")
+            return { ok: false, error: "A donut needs a count or days column (shares of a total), not a percentage or average: use bar." };
+          if (r.rows.length > 20) return { ok: false, error: "Too many slices for a donut (max 20): use bar." };
+        }
         return { ok: true, spec };
       },
     }),

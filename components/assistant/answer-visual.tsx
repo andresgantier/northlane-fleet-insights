@@ -1,12 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { Bar, BarChart, CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { Bar, BarChart, CartesianGrid, Cell, Legend, Line, LineChart, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { ChartSpec, Column, DataResult } from "@/lib/assistant/types";
 
 const COLORS = ["#2563eb", "#f59e0b"]; // blue / amber, readable in light and dark mode
+// Donut slices: distinct hues, then repeated lighter blues for small groups.
+const SLICES = ["#2563eb", "#f59e0b", "#14b8a6", "#e11d48", "#8b5cf6", "#0ea5e9", "#84cc16", "#f97316", "#64748b", "#ec4899"];
 const nf = new Intl.NumberFormat("en-US", { maximumFractionDigits: 2 });
 
 function cell(value: unknown, kind: Column["kind"]) {
@@ -87,6 +89,20 @@ export function AnswerVisual({ data, spec }: { data: DataResult; spec: ChartSpec
               {y.length > 1 && <Legend />}
               {y.map((k, i) => <Line key={k} dataKey={k} name={label(k)} stroke={COLORS[i]} strokeWidth={2} dot={{ r: 3 }} />)}
             </LineChart>
+          </ResponsiveContainer>
+        </div>
+      )}
+
+      {type === "donut" && y.length === 1 && (
+        <div className="h-80">
+          <ResponsiveContainer width="100%" height="100%">
+            <PieChart>
+              <Pie data={rows.filter((r) => Number(r[y[0]] ?? 0) > 0)} dataKey={y[0]} nameKey={x} innerRadius="55%" outerRadius="85%" paddingAngle={1}>
+                {rows.filter((r) => Number(r[y[0]] ?? 0) > 0).map((r, i) => <Cell key={String(r[x])} fill={SLICES[i % SLICES.length]} />)}
+              </Pie>
+              <Tooltip formatter={(v) => nf.format(Number(v))} />
+              <Legend layout="vertical" align="right" verticalAlign="middle" wrapperStyle={{ fontSize: 11 }} />
+            </PieChart>
           </ResponsiveContainer>
         </div>
       )}
