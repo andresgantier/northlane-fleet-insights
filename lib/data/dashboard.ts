@@ -57,11 +57,9 @@ export async function getDashboardData(userId: string, f: DashboardFilters): Pro
     sql`select vehicle_id, plate_nr, vehicle_type, organization_code, episodes_12m, downtime_days_12m,
                frc_active, frc_status, latest_start::text, latest_end::text, is_critical
         from public.vehicle_status_filtered(${f.org}, ${f.type}, ${f.frc}, ${f.q})
-        where episodes_12m > 0
         order by episodes_12m desc, downtime_days_12m desc, vehicle_id
         limit ${PAGE_SIZE} offset ${offset}`,
-    sql`select count(*)::int as n from public.vehicle_status_filtered(${f.org}, ${f.type}, ${f.frc}, ${f.q})
-        where episodes_12m > 0`,
+    sql`select count(*)::int as n from public.vehicle_status_filtered(${f.org}, ${f.type}, ${f.frc}, ${f.q})`,
     sql`select code from public.organizations order by code`,
     sql`select name from public.vehicle_types order by name`,
     sql`select app.as_of()::text as as_of, (app.as_of() - 364)::text as window_start,

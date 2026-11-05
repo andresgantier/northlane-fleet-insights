@@ -7,7 +7,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { KpiCard } from "@/components/app/kpi-card";
 import { getAppUser } from "@/lib/session";
 import { getDashboardData, PAGE_SIZE, type DashboardFilters } from "@/lib/data/dashboard";
-import { formatDate, formatInt, formatNumber } from "@/lib/format";
+import { formatDate, formatInt } from "@/lib/format";
 
 const FRC_OPTIONS = [
   { value: "", label: "Any" },
@@ -72,13 +72,10 @@ async function Dashboard({ searchParams }: Pick<PageProps<"/">, "searchParams">)
         )}
       </div>
 
-      <section className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-7" aria-label="Key figures">
+      <section className="grid grid-cols-2 gap-3 md:grid-cols-4" aria-label="Key figures">
         <KpiCard label="Critical cases" value={formatInt(s.critical_cases)} hint="FRC should be opened" tone="critical" />
-        <KpiCard label="Vehicles with downtime" value={formatInt(s.vehicles_with_downtime)} hint={`of ${formatInt(s.fleet_vehicles)}`} />
-        <KpiCard label="Episodes" value={formatInt(s.episodes)} />
+        <KpiCard label="Episodes" value={formatInt(s.episodes)} hint={`${formatInt(s.fleet_vehicles)} vehicles`} />
         <KpiCard label="Downtime days" value={formatInt(s.downtime_days)} />
-        <KpiCard label="MTTR" value={s.mttr_days ? `${formatNumber(s.mttr_days, 1)} d` : "—"} hint="days per episode" />
-        <KpiCard label="Availability" value={s.availability_pct ? `${formatNumber(s.availability_pct, 1)} %` : "—"} />
         <KpiCard label="Active FRCs" value={formatInt(s.active_frcs)} />
       </section>
 
@@ -134,7 +131,7 @@ async function Dashboard({ searchParams }: Pick<PageProps<"/">, "searchParams">)
               </TableRow>
             )}
             {data.vehicles.map((v) => (
-              <TableRow key={v.vehicle_id}>
+              <TableRow key={v.vehicle_id} className={v.episodes_12m === 0 ? "text-muted-foreground" : undefined}>
                 <TableCell>
                   <Link href={`/vehicles/${v.vehicle_id}`} className="font-medium text-primary underline-offset-4 hover:underline">{v.vehicle_id}</Link>
                 </TableCell>
@@ -152,7 +149,7 @@ async function Dashboard({ searchParams }: Pick<PageProps<"/">, "searchParams">)
           </TableBody>
         </Table>
         <div className="flex items-center justify-between gap-2 border-t px-4 py-3 text-sm text-muted-foreground">
-          <span>{formatInt(data.totalRows)} vehicles with downtime · page {Math.min(filters.page, pages)} of {pages}</span>
+          <span>{formatInt(data.totalRows)} vehicles · page {Math.min(filters.page, pages)} of {pages}</span>
           <div className="flex gap-2">
             {filters.page > 1 && <Button size="sm" variant="outline" asChild><Link href={pageHref(filters.page - 1)}>Previous</Link></Button>}
             {filters.page < pages && <Button size="sm" variant="outline" asChild><Link href={pageHref(filters.page + 1)}>Next</Link></Button>}

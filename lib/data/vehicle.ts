@@ -42,11 +42,14 @@ export type Episode = {
 
 export type FrcAction = { created_at: string; user_name: string; user_role: string; result: string; message: string; previous_status: string | null };
 
-export type VehicleDetail = { vehicle: VehicleStatus; episodes: Episode[]; actions: FrcAction[]; asOf: string };
+// Downtime days per calendar month and category, last 12 months (days clipped to each month).
+export type MonthRow = { month: string; category: string; downtime_days: number; episodes: number };
+
+export type VehicleDetail = { vehicle: VehicleStatus; episodes: Episode[]; actions: FrcAction[]; months: MonthRow[]; asOf: string };
 
 // One vehicle as the signed-in user. Returns null when it does not exist or is not visible (RLS).
 export async function getVehicleDetail(userId: string, vehicleId: number): Promise<VehicleDetail | null> {
-  const [vehicle, episodes, meta, actions] = await queryAsUser(userId, (sql) => [
+  const [vehicle, episodes, meta, actions, months] = await queryAsUser(userId, (sql) => [
     sql`select vehicle_id, plate_nr, vehicle_type, vehicle_class, organization_code, manufacture_year,
                episodes_12m, downtime_days_12m, mttr_days_12m, avg_days_between_episodes_12m,
                availability_pct_12m, latest_start::text, latest_end::text, frc_status, frc_active,
@@ -59,12 +62,18 @@ export async function getVehicleDetail(userId: string, vehicleId: number): Promi
     sql`select app.as_of()::text as as_of`,
     sql`select created_at::text, user_name, user_role, result, message, previous_status
         from public.frc_actions where vehicle_id = ${vehicleId} order by created_at desc limit 20`,
+    sql`select m.group_key as month, c.category, m.downtime_days, m.episodes
+        from unnest(array['Mechanical Breakdown', 'Scheduled Maintenance', 'Inspection/Compliance Hold',
+                          'Accident/Collision Damage']) as c(category)
+        cross join lateral public.downtime_metrics(app.as_of() - 364, app.as_of(), 'month',
+                                                   null, null, null, c.category, ${vehicleId}) m`,
   ]);
   if (!vehicle[0]) return null;
   return {
     vehicle: vehicle[0] as VehicleStatus,
     episodes: episodes as Episode[],
     actions: actions as FrcAction[],
+    months: months.map((m) => ({ month: String(m.month), category: String(m.category), downtime_days: Number(m.downtime_days), episodes: Number(m.episodes) })),
     asOf: String(meta[0].as_of),
   };
 }
