@@ -26,8 +26,8 @@ This project takes that report to a web app: the same dashboard and rules, plus 
 | **Dashboard** | Critical cases, episodes, downtime days and active FRCs; the vehicle list with the critical-case mark; filters by depot, type and FRC status; search by ID or plate. |
 | **Vehicle page** | Downtime days per month with the FRC period and the 6-month rule window shaded; episodes; whether each critical-case condition is met, with the vehicle's values. |
 | **Assistant** | Questions in English, Spanish or German, answered in the same language. Each answer: short text, a chart chosen for the question (bar, line, donut or table), the data table, **"How was this calculated?"** (metric, period, filters, source) and a client-side **Excel download**. Follow-up questions keep the context. Questions that the data cannot answer are declined, never guessed. |
-| **Supervised action** | When a vehicle is a critical case, the assistant can **propose** opening an FRC. Nothing changes until a Fleet Operations user clicks *Confirm*; the database checks the rules, prevents duplicates and records every attempt in an audit log. |
-| **Evaluation** | 35 test questions in three languages, including trap questions with no possible answer, graded against answers computed by SQL. The results page shows the score and explains every failure. |
+| **Supervised actions** | The assistant can **propose** opening an FRC for a critical case, closing one ("remove" = Aborted, nothing is deleted), correcting its dates or recording a past one. Nothing changes until a Fleet Operations user clicks *Confirm*; the database checks the rules, prevents duplicates and records every attempt, with previous and new values, in an audit log. |
+| **Evaluation** | 38 test questions in three languages, including trap questions with no possible answer, graded against answers computed by SQL. The results page shows the score and explains every failure. |
 
 | Vehicle: downtime per month | Vehicle: critical-case rules |
 |---|---|
@@ -87,11 +87,11 @@ flowchart LR
 
 | | Result |
 |---|---|
-| All questions | **35 of 35 (100 %)** on the last run |
+| All questions | **38 of 38 (100 %)** on the last run |
 | Trap questions (no answer possible) | 100 % declined without inventing data |
 | English / Spanish / German | see the [results page](https://northlane-fleet-insights.vercel.app/evaluation) |
 
-The first run scored 84 %. Each failure was analysed and fixed at its cause (a filter boundary, a missing tool option, counting rows instead of using the total) and the full set was run again after every change: 97 %, then 100 %. Every past failure stays documented on the results page. A perfect score on 35 questions does not mean the assistant is never wrong; it means the known question types are answered correctly, and new ones are added to the set when they fail.
+The first run scored 84 %. Each failure was analysed and fixed at its cause (a filter boundary, a missing tool option, counting rows instead of using the total) and the full set was run again after every change: 97 %, then 100 %. Every past failure stays documented on the results page. A perfect score on 38 questions does not mean the assistant is never wrong; it means the known question types are answered correctly, and new ones are added to the set when they fail.
 
 ## Tech stack
 

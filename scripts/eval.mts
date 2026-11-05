@@ -17,6 +17,8 @@ type Expected = {
   accept?: string[];
   vehicle_id?: number;      // proposal: vehicle the FRC proposal must be for
   can_confirm?: boolean;    // proposal: whether the user may confirm it
+  tool?: string;            // proposal: propose_frc (default) or propose_frc_change
+  action?: string;          // proposal with propose_frc_change: close | edit | record_past
 };
 type Question = { id: string; language: string; difficulty: string; role: "fleet_ops" | "depot_supervisor"; turns: string[]; expected: Expected };
 
@@ -72,9 +74,12 @@ type ToolCall = { tool: string; input: unknown; output?: unknown };
 function grade(q: Question, expected: string | null, answer: string, calls: ToolCall[]): { pass: boolean; reason: string } {
   const charted = calls.some((c) => c.tool === "show_chart");
   if (q.expected.match === "proposal") {
-    const p = calls.find((c) => c.tool === "propose_frc");
-    const out = p?.output as { can_confirm?: boolean; vehicle?: { vehicle_id: number } } | undefined;
-    if (!p) return { pass: false, reason: "Expected an FRC proposal (propose_frc), none was made" };
+    const tool = q.expected.tool ?? "propose_frc";
+    // Last valid proposal: a call rejected by input validation has no output and the model retries.
+    const p = calls.filter((c) => c.tool === tool && c.output).at(-1) ?? calls.find((c) => c.tool === tool);
+    const out = p?.output as { can_confirm?: boolean; action?: string; vehicle?: { vehicle_id: number } } | undefined;
+    if (!p) return { pass: false, reason: `Expected an FRC proposal (${tool}), none was made` };
+    if (q.expected.action && out?.action !== q.expected.action) return { pass: false, reason: `Expected action ${q.expected.action}, got ${out?.action}` };
     if (out?.vehicle?.vehicle_id !== q.expected.vehicle_id) return { pass: false, reason: `Proposal for the wrong vehicle` };
     if (out?.can_confirm !== q.expected.can_confirm)
       return { pass: false, reason: `Expected can_confirm = ${q.expected.can_confirm}, got ${out?.can_confirm}` };
@@ -126,7 +131,7 @@ for (const [i, q] of selected.entries()) {
           s.toolCalls.map((c) => ({
             tool: c.toolName,
             input: c.input,
-            ...(c.toolName === "propose_frc" ? { output: s.toolResults.find((t) => t.toolCallId === c.toolCallId)?.output } : {}),
+            ...(c.toolName.startsWith("propose_frc") ? { output: s.toolResults.find((t) => t.toolCallId === c.toolCallId)?.output } : {}),
           })),
         );
         error = null;
@@ -150,7 +155,7 @@ for (const [i, q] of selected.entries()) {
     id: q.id, language: q.language, difficulty: q.difficulty, role: q.role, turns: q.turns,
     match: q.expected.match,
     expected: q.expected.match === "refusal" ? "Refusal (no data shown)"
-      : q.expected.match === "proposal" ? `FRC proposal for vehicle ${q.expected.vehicle_id}, ${q.expected.can_confirm ? "confirmable" : "not confirmable"}`
+      : q.expected.match === "proposal" ? `FRC ${q.expected.action ?? "open"} proposal for vehicle ${q.expected.vehicle_id}, ${q.expected.can_confirm ? "confirmable" : "not confirmable"}`
       : (expected ?? q.expected.accept?.join(" / ") ?? null),
     answer, tools: calls, pass: graded.pass, reason: graded.reason, seconds: Math.round((Date.now() - started) / 100) / 10,
   });

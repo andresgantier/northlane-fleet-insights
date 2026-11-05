@@ -73,7 +73,7 @@ Interpretación tomada de las medidas DAX del reporte (p. ej. `Condition 1`: `St
 - `GEMINI_API_KEY` solo en el servidor.
 
 ## 7. Fuera de alcance (no proponer ni reabrir)
-Escritura de datos desde el chat (salvo la acción supervisada de la Fase 5b), edición o cierre de FRC, correos o notificaciones, historial de chats guardado, "pin to dashboard", app móvil, modelos locales, conexión a sistemas reales de la empresa.
+Escritura de datos desde el chat (salvo las acciones supervisadas de las Fases 5b y 5c), borrado físico de FRC, correos o notificaciones, historial de chats guardado, "pin to dashboard", app móvil, modelos locales, conexión a sistemas reales de la empresa.
 
 ## 8. Simplificaciones conscientes (para explicar en entrevistas)
 Neon en lugar de Supabase (la cuenta de Supabase ya usa sus 2 proyectos gratuitos; Neon no pausa proyectos por inactividad); datos ficticios de un export (no se crean en la app: es OLAP, no OLTP); fechas desplazadas para que el demo siga vigente; un FRC por vehículo; una zona horaria (Europe/Berlin); "Vehicle Age" se trata como año de fabricación y la edad se calcula.
@@ -86,6 +86,7 @@ Neon en lugar de Supabase (la cuenta de Supabase ya usa sus 2 proyectos gratuito
 4. **Asistente:** chat, herramientas, gráficos, "How was this calculated?", límites de uso. ✔ responde bien 10 preguntas de ejemplo en 3 idiomas y rechaza una imposible.
 5. **Evaluación:** set de 30 preguntas, script y página de resultados. ✔ % de aciertos visible y fallos explicados.
 5b. **Acción supervisada: proponer y abrir un FRC.** Si un vehículo es caso crítico, el asistente puede proponer abrir un FRC (tipo Standard). Muestra una tarjeta con vehículo, condición cumplida y valores; solo se ejecuta si el usuario hace clic en "Confirm". Reglas en la base: solo `fleet_ops` puede abrir FRC; solo para casos críticos sin FRC activo; nunca dos veces (idempotente); el modelo nunca ejecuta la acción por sí mismo, solo la propone; registro de auditoría (quién, cuándo, qué). Se agregan 2–3 preguntas a la evaluación. Se salta si la Fase 5 no da resultados sólidos. ✔ un supervisor no puede abrir FRC; Fleet Ops abre uno con confirmación, el vehículo deja de ser caso crítico y la auditoría lo muestra; repetir la acción no crea un segundo FRC.
+5c. **Cambios supervisados de FRC:** cerrar un FRC activo (con o sin plan de acción, declinado o abortado; "eliminar" = Aborted), corregir sus fechas o registrar un FRC pasado. Mismo patrón que 5b: el asistente propone, Fleet Ops confirma, la base valida (rol, fechas, FRC activo) y audita valores anteriores y nuevos. Un FRC por vehículo: el registrado reemplaza al guardado, que queda en la auditoría. ✔ reglas verificadas en `db/verify/change_frc_rules.sql`; 3 preguntas nuevas en la evaluación.
 6. **Publicación en Vercel** y prueba de punta a punta con ambos roles y desde el celular. ✔ link público funcionando con los dos roles.
 7. **Documentación:** README con capturas y diagrama simple (cómo responde el asistente, paso a paso), `docs/PRODUCTION.md` (qué cambiaría en una empresa real: modelo de pago y privacidad de datos, monitoreo de calidad del asistente, costos), líneas de CV en inglés y alemán y página de Notion (estructura la pasa Andrés). ✔ README y documentos revisados por Andrés.
 

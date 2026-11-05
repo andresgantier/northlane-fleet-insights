@@ -1,9 +1,9 @@
 {
-  "run_at": "2026-11-05T00:31:42.121Z",
+  "run_at": "2026-11-05T00:41:23.449Z",
   "as_of": "2026-11-05",
   "model": "gemini-3.5-flash-lite",
-  "total": 35,
-  "passed": 35,
+  "total": 38,
+  "passed": 38,
   "results": [
     {
       "id": "en-01",
@@ -1229,6 +1229,166 @@
       ],
       "pass": true,
       "reason": "Proposed FRC for vehicle 636 (can confirm: false); nothing written",
+      "seconds": 9.6
+    },
+    {
+      "id": "frc-04",
+      "language": "en",
+      "difficulty": "medium",
+      "role": "fleet_ops",
+      "turns": [
+        "Close the Fleet Review Case of vehicle 636 with an action plan."
+      ],
+      "match": "proposal",
+      "expected": "FRC close proposal for vehicle 636, confirmable",
+      "answer": "I have prepared a proposal to close the Fleet Review Case for vehicle 636 (plate PL-4428) as closed with an action plan. Please review the evidence on the card and confirm the change using the button.",
+      "tools": [
+        {
+          "tool": "propose_frc_change",
+          "input": {
+            "vehicle_id": 636,
+            "action": "close",
+            "status": "closed_with_action_plan"
+          },
+          "output": {
+            "kind": "frc_change",
+            "found": true,
+            "can_confirm": true,
+            "reason": null,
+            "action": "close",
+            "request": {
+              "status": "closed_with_action_plan",
+              "start_date": null,
+              "end_date": null
+            },
+            "vehicle": {
+              "vehicle_id": 636,
+              "plate_nr": "PL-4428",
+              "vehicle_type": "Livestock Trailer",
+              "organization_code": "W-EUN/EL"
+            },
+            "current": {
+              "status": "Review Case Active – Standard",
+              "start": "2026-07-17",
+              "end": null
+            },
+            "after": {
+              "status": "Review Case Closed – With Action Plan",
+              "start": "2026-07-17",
+              "end": "2026-11-05"
+            }
+          }
+        }
+      ],
+      "pass": true,
+      "reason": "Proposed FRC for vehicle 636 (can confirm: true); nothing written",
+      "seconds": 9.5
+    },
+    {
+      "id": "frc-05",
+      "language": "es",
+      "difficulty": "hard",
+      "role": "depot_supervisor",
+      "turns": [
+        "Registra un FRC pasado para el vehículo 684 que empezó el 1 de marzo y cerró el 20 de marzo de 2026."
+      ],
+      "match": "proposal",
+      "expected": "FRC record_past proposal for vehicle 684, not confirmable",
+      "answer": "La tarjeta muestra la propuesta para registrar el FRC pasado del vehículo 684 (del 1 al 20 de marzo de 2026). Sin embargo, no se puede confirmar ya que solo Fleet Operations puede realizar este cambio.",
+      "tools": [
+        {
+          "tool": "propose_frc_change",
+          "input": {
+            "vehicle_id": 684,
+            "action": "record_past",
+            "start_date": "2026-03-01",
+            "end_date": "2026-03-20"
+          },
+          "output": {
+            "kind": "frc_change",
+            "found": true,
+            "can_confirm": false,
+            "reason": "Only Fleet Operations can change a Fleet Review Case.",
+            "action": "record_past",
+            "request": {
+              "status": null,
+              "start_date": "2026-03-01",
+              "end_date": "2026-03-20"
+            },
+            "vehicle": {
+              "vehicle_id": 684,
+              "plate_nr": "CZ 453 CF",
+              "vehicle_type": "Refrigerated Trailer (Reefer)",
+              "organization_code": "W-EUN/EJ"
+            },
+            "current": {
+              "status": null,
+              "start": null,
+              "end": null
+            },
+            "after": {
+              "status": "Review Case Closed – No Action Plan",
+              "start": "2026-03-01",
+              "end": "2026-03-20"
+            }
+          }
+        }
+      ],
+      "pass": true,
+      "reason": "Proposed FRC for vehicle 684 (can confirm: false); nothing written",
+      "seconds": 9.5
+    },
+    {
+      "id": "frc-06",
+      "language": "de",
+      "difficulty": "medium",
+      "role": "fleet_ops",
+      "turns": [
+        "Lösche den Fleet Review Case von Fahrzeug 259."
+      ],
+      "match": "proposal",
+      "expected": "FRC close proposal for vehicle 259, confirmable",
+      "answer": "Ich habe einen Vorschlag vorbereitet, den Fleet Review Case für Fahrzeug 259 auf „abgebrochen“ (Status *Aborted*) zu setzen. Bitte nutzen Sie die Karte unten, um die Änderung zu bestätigen.",
+      "tools": [
+        {
+          "tool": "propose_frc_change",
+          "input": {
+            "vehicle_id": 259,
+            "action": "close",
+            "status": "aborted"
+          },
+          "output": {
+            "kind": "frc_change",
+            "found": true,
+            "can_confirm": true,
+            "reason": null,
+            "action": "close",
+            "request": {
+              "status": "aborted",
+              "start_date": null,
+              "end_date": null
+            },
+            "vehicle": {
+              "vehicle_id": 259,
+              "plate_nr": "NL 727 ME",
+              "vehicle_type": "Sprinter Van",
+              "organization_code": "W-EUN/EI"
+            },
+            "current": {
+              "status": "Review Case Active – Standard",
+              "start": "2026-07-03",
+              "end": null
+            },
+            "after": {
+              "status": "Review Case Aborted",
+              "start": "2026-07-03",
+              "end": "2026-11-05"
+            }
+          }
+        }
+      ],
+      "pass": true,
+      "reason": "Proposed FRC for vehicle 259 (can confirm: true); nothing written",
       "seconds": 9.6
     }
   ]

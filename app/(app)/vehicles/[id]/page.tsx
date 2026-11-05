@@ -213,7 +213,7 @@ function DetailsTab({ detail }: { detail: VehicleDetail }) {
                     <span className="text-muted-foreground">{a.created_at.slice(0, 16)}</span>
                     <span>{a.user_name}</span>
                     <Badge variant={a.result === "opened" ? "secondary" : "outline"}>{a.result.replace("_", " ")}</Badge>
-                    <span className="text-muted-foreground">{a.message}{a.previous_status ? ` (replaced: ${a.previous_status.replace("Review Case ", "")})` : ""}</span>
+                    <span className="text-muted-foreground">{a.message}{a.previous_status ? ` (before: ${a.previous_status.replace("Review Case ", "")})` : ""}</span>
                   </li>
                 ))}
               </ul>

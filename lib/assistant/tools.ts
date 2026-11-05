@@ -435,6 +435,57 @@ export function buildTools(ctx: ToolContext) {
       },
     }),
 
+    propose_frc_change: tool({
+      description:
+        "Prepare a proposal to change a vehicle's Fleet Review Case: close an active FRC (also when the user asks to " +
+        "remove, cancel or delete it: use status aborted), correct its start or end date (edit), or record a past FRC " +
+        "that started and ended earlier (record_past). This never changes anything: the user confirms on a card. " +
+        "Dates as YYYY-MM-DD; when the user omits the year, use the most recent date that is not in the future.",
+      inputSchema: z.object({
+        vehicle_id: z.number().int().positive(),
+        action: z.enum(["close", "edit", "record_past"]),
+        status: z.enum(["closed_with_action_plan", "closed_no_action_plan", "declined", "aborted"]).optional()
+          .describe("close / record_past: resulting status (default closed_no_action_plan)"),
+        start_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional().describe("edit / record_past: start date"),
+        end_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional().describe("close: end date (default today); edit: new end of a closed FRC; record_past: end date"),
+      }),
+      execute: async (input) => {
+        const [rows] = await run((sql) => [
+          sql`select vehicle_id, plate_nr, vehicle_type, organization_code, frc_status, frc_active,
+                     frc_start::text, frc_end::text
+              from public.v_vehicle_status where vehicle_id = ${input.vehicle_id}`,
+        ]);
+        const v = rows[0];
+        if (!v) return { kind: "frc_change" as const, found: false, can_confirm: false, reason: "No vehicle with that ID is visible to this user." };
+        const statusLabel = FRC_STATUS[input.status ?? "closed_no_action_plan"];
+        const current = { status: (v.frc_status as string | null) ?? null, start: (v.frc_start as string | null) ?? null, end: (v.frc_end as string | null) ?? null };
+        const after =
+          input.action === "close" ? { status: statusLabel, start: current.start, end: input.end_date ?? ctx.asOf }
+          : input.action === "edit" ? { status: current.status, start: input.start_date ?? current.start, end: v.frc_active ? null : (input.end_date ?? current.end) }
+          : { status: statusLabel, start: input.start_date ?? null, end: input.end_date ?? null };
+        // Same checks as the database function, so the card can explain a rejection before any click.
+        const reason = ctx.isSupervisor ? "Only Fleet Operations can change a Fleet Review Case."
+          : input.action === "close" && !v.frc_active ? "There is no active Fleet Review Case to close."
+          : input.action === "edit" && !current.status ? "This vehicle has no Fleet Review Case to correct."
+          : input.action === "record_past" && v.frc_active ? "The vehicle has an active Fleet Review Case: close it first."
+          : input.action === "record_past" && (!after.start || !after.end) ? "A past Fleet Review Case needs a start and an end date."
+          : (after.start && after.start > ctx.asOf) || (after.end && after.end > ctx.asOf) ? "Dates cannot be in the future."
+          : after.start && after.end && after.end < after.start ? "The end date must be on or after the start date."
+          : null;
+        return {
+          kind: "frc_change" as const,
+          found: true,
+          can_confirm: reason === null,
+          reason,
+          action: input.action,
+          request: { status: input.status ?? null, start_date: input.start_date ?? null, end_date: input.end_date ?? null },
+          vehicle: { vehicle_id: Number(v.vehicle_id), plate_nr: String(v.plate_nr), vehicle_type: String(v.vehicle_type), organization_code: String(v.organization_code) },
+          current,
+          after,
+        };
+      },
+    }),
+
     show_chart: tool({
       description:
         "Display a data result to the user. Call exactly once per answer, after the data tools, with the result_id " +

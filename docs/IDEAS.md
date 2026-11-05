@@ -3,5 +3,4 @@
 Ideas that came up during development but are not in `PROJECT_BRIEF.md`. Reviewed only after Phase 7.
 
 - Scheduled re-import (e.g. GitHub Actions every two weeks, like the original refresh cycle) so the shifted dates stay aligned with today without running `npm run db:import` by hand.
-- Supervised FRC lifecycle from the assistant: close an FRC (with or without action plan) or correct its start date, with the same pattern as opening one (proposal card, Fleet Operations confirmation, database rules, audit log).
 - "Reset demo data" button for Fleet Operations (re-runs the import), so FRCs opened during a demo can be undone without the terminal.
