@@ -6,9 +6,9 @@ import { Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { ChartSpec, Column, DataResult } from "@/lib/assistant/types";
 
-const COLORS = ["#2563eb", "#f59e0b"]; // blue / amber, readable in light and dark mode
+const COLORS = ["#0b4ea2", "#f28c28"]; // blue / amber, readable in light and dark mode
 // Donut slices: distinct hues, then repeated lighter blues for small groups.
-const SLICES = ["#2563eb", "#f59e0b", "#14b8a6", "#e11d48", "#8b5cf6", "#0ea5e9", "#84cc16", "#f97316", "#64748b", "#ec4899"];
+const SLICES = ["#0b4ea2", "#f28c28", "#14b8a6", "#e11d48", "#8b5cf6", "#0ea5e9", "#84cc16", "#f97316", "#64748b", "#ec4899"];
 const nf = new Intl.NumberFormat("en-US", { maximumFractionDigits: 2 });
 
 function cell(value: unknown, kind: Column["kind"]) {

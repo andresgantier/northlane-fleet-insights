@@ -3,15 +3,23 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import { DemoButtons, EmailForm } from "./login-forms";
+import { BrandLogo } from "@/components/app/brand-logo";
 import { signOut } from "./actions";
 
 export default function LoginPage({ searchParams }: PageProps<"/login">) {
   return (
-    <main className="flex flex-1 items-center justify-center bg-muted/40 px-4 py-12">
-      <Card className="w-full max-w-md">
+    <main className="flex flex-1 flex-col">
+      <div className="bg-brand px-4 pt-10 pb-24">
+        <div className="mx-auto flex max-w-md flex-col gap-3">
+          <BrandLogo />
+          <p className="text-sm text-white/80">Vehicle downtime and Fleet Review Cases, with an assistant for your questions.</p>
+        </div>
+      </div>
+      <div className="-mt-16 flex justify-center px-4 pb-12">
+      <Card className="w-full max-w-md shadow-lg">
         <CardHeader>
-          <CardTitle className="text-2xl">NorthLane Fleet Insights</CardTitle>
-          <CardDescription>Vehicle downtime and Fleet Review Cases, with an assistant for your questions.</CardDescription>
+          <CardTitle className="text-2xl text-brand-dark">Fleet Insights</CardTitle>
+          <CardDescription>Sign in to see your fleet, depot or the whole network.</CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col gap-6">
           <Suspense>
@@ -29,6 +37,7 @@ export default function LoginPage({ searchParams }: PageProps<"/login">) {
           </section>
         </CardContent>
       </Card>
+      </div>
     </main>
   );
 }

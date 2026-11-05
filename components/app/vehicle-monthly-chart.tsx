@@ -7,7 +7,7 @@ import type { MonthRow } from "@/lib/data/vehicle";
 // with the Fleet Review Case period shaded red and the last 6 months (critical-case window) shaded grey.
 
 const CATEGORIES = [
-  { key: "Mechanical Breakdown", color: "#2563eb" },
+  { key: "Mechanical Breakdown", color: "#0b4ea2" },
   { key: "Scheduled Maintenance", color: "#14b8a6" },
   { key: "Inspection/Compliance Hold", color: "#f59e0b" },
   { key: "Accident/Collision Damage", color: "#e11d48" },
